@@ -435,15 +435,15 @@ The model's AIC of 12037.52 reflects a balance between complexity and fit. The c
 
 ### Research Question 2: Contributing Factors of Blood Mercury Level
 
-Our statistical approach employed multiple linear regression with log-transformed mercury levels as the dependent variable, addressing both the non-normal distribution of mercury concentrations and the presence of detection limits in the measurements. The model incorporated water consumption variables (tap and bottled water intake), demographic characteristics (race, gender, age), and socioeconomic status (income-to-poverty ratio) to capture the complex relationships between these factors. Below is a summary descriptive statistics of both dependent variable and priori predictor variables. 
+Our statistical approach employed multiple linear regression with log-transformed mercury levels as the dependent variable, addressing both the non-normal distribution of mercury concentrations and the presence of detection limits in the measurements. The model incorporated water consumption variables (tap and bottled water intake), demographic characteristics (race, gender, age), and socioeconomic status (income-to-poverty ratio) to capture the complex relationships between these factors. Below is a summary descriptive statistics of both dependent variable and priori predictor variables.
 
 ```{r data-2, include=FALSE, warning=FALSE}
 
 # Load datasets
-dr1tot <- read_xpt("/Users/zhangsu/Desktop/Original Files/DR1TOT_L.XPT")
-bpxo   <- read_xpt("/Users/zhangsu/Desktop/Original Files/BPXO_L.XPT")
-demo   <- read_xpt("/Users/zhangsu/Desktop/Original Files/DEMO_L.XPT")
-pbcd   <- read_xpt("/Users/zhangsu/Desktop/Original Files/PBCD_L.XPT")
+dr1tot <- dietary
+bpxo   <- BP
+demo   <- demographics
+pbcd   <- dietary
 
 # Merge datasets on sequence number (SEQN)
 data_merged <- demo %>%
@@ -761,9 +761,9 @@ colSums(is.na(data))
 
 We initially fit a multiple linear regression model towards the blood mercury levels. However, in the residuals vs fitted graph (in the appendix section), the spread of residuals increases as the fitted values grow, indicating heteroscedasticity. The Q-Q plot (in the appendix section) deviates significantly from the 45-degree reference line, particularly at the extremes (tails of the distribution), indicating that the residuals are not normally distributed. These suggest a potential violation of the normality assumption. Therefore, we log-transformed the dependent variable to stabilize the variance and help normalize the residuals.
 
-When fitting the model, we tried to include interaction term between race and family income to poverty level, because the influence of income on health outcomes such as mercury levels might vary by race due to differences in access to healthcare, dietary habits, or exposure to environmental risk factors and we want to take the heterogeneous effects into considerations. However, the interaction between race and income level has a transformed GVIF value of 2.185 (outputs could be found in appendix), which is slightly high and creates multicollinearity. Therefore, we decided to remove the interaction term and examine the effects of race and income level separately. 
+When fitting the model, we tried to include interaction term between race and family income to poverty level, because the influence of income on health outcomes such as mercury levels might vary by race due to differences in access to healthcare, dietary habits, or exposure to environmental risk factors and we want to take the heterogeneous effects into considerations. However, the interaction between race and income level has a transformed GVIF value of 2.185 (outputs could be found in appendix), which is slightly high and creates multicollinearity. Therefore, we decided to remove the interaction term and examine the effects of race and income level separately.
 
-We also examined the influential points using Cook's distance and marked the top 5 influential points in below graph. We then refit the model again after removing these influential points (the model results outputs and residual plots can be found in appendix section). We also attempted to remove high leverage points using the threshold of $h_i > \frac{2(p+1)}{n}$. However, removing influential points did not significant change the model results (adjusted R-squared and p-values). Therefore, we decided to keep these influential points in the model. 
+We also examined the influential points using Cook's distance and marked the top 5 influential points in below graph. We then refit the model again after removing these influential points (the model results outputs and residual plots can be found in appendix section). We also attempted to remove high leverage points using the threshold of $h_i > \frac{2(p+1)}{n}$. However, removing influential points did not significant change the model results (adjusted R-squared and p-values). Therefore, we decided to keep these influential points in the model.
 
 ```{r}
 # Log-transform the dependent variable
@@ -790,7 +790,6 @@ text(x = top_points, y = cooks_d[top_points],
 Therefore, the final model was to fit logged blood mercury level using age, gender, race, income levels, tap water intake and bottle water intake. The final model outputs are in below table. To make the coefficients easier to interpret, we performed a back-transformation by exponentiating the regression coefficients and their confidence intervals to interpret the results on the original scale of mercury levels rather than their logged value. This allows us to describe how each predictor multiplicatively affects mercury levels, providing more meaningful and practical insights.
 
 The model summary output shows that tap water intakes has a significant positive association with p-value less than 0.001, whereas bottled water intake has no significant effect (with p-value of 0.151). For the variable of race, compared to the reference level of Mexican Americans, non-Hispanic Asians have 149.9% higher mercury levels, while non-Hispanic, non-Hispanic Black and other races have 45%, 27.4%, 18.7% higher mercury levels respectively. The only racial group that has lower mercury level compared to Mexican Americans is non-Hispanic White, which estimated to be 9% lower than the reference group. For demographic factors, both age and income level have positive association with mercury levels (with p-value \< 0.001). Holding all other variables constant, for every unit increase in the income-to-poverty ratio, mercury levels increase by 14.2%, which is a bit counter-intuitive, as the richer family have higher blood mercury level. Each additional year of age is associated with a 1.4% increase in mercury levels. For gender, females, compared to males (the reference group), have mercury levels that are 8% lower.
-
 
 ```{r}
 
@@ -865,8 +864,6 @@ National Center for Biotechnology Information. (2021). The clinical consequences
 
 #### Research Question 1:
 
-
-
 ### Research Qustion 2:
 
 **Residual plots for original model without log transformation**
@@ -908,7 +905,6 @@ model_interaction <- lm(log_LBXTHG ~ DR1_330Z + DR1BWATZ + Race*INDFMPIR +
 vif(model_interaction)
 ```
 
-
 **MLR model results and residual plots after removing top 5 influential points examined through Cook's distance**
 
 ```{r}
@@ -949,4 +945,3 @@ plot(model_rerefit)
 vif(model_rerefit)
 
 ```
-
