@@ -43,21 +43,15 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
 ## Abstract
 
-Investigating factors influencing blood pressure and mercury levels in the US population is crucial for public health interventions and environmental policy-making. This study aims to examine the relationships between dietary sodium intake and blood pressure levels, as well as factors that influence blood mercury levels. The dataset analyzed is derived from the Center for Disease Control (CDC) survey data collected through interviews, blood tests, and medical examinations from August 2021 to August 2023. Multinomial regression was used to model blood pressure levels, and linear regression was applied to model blood mercury levels. The analysis revealed no significant association between dietary sodium consumption and blood pressure levels. However, age emerged as a significant predictor of hypertension (p \< 0.001). After preliminary data analysis and variable selection, tap water consumption showed a significant positive association with blood mercury levels (p \< 0.001). Race and income demonstrated significant interactive effects, with non-Hispanic Asian participants showing notably higher mercury levels (p \< 0.001). Our study identified key environmental and demographic factors affecting blood mercury levels, which can inform public health policies regarding water consumption and exposure to environmental toxins.
+Investigating factors influencing blood pressure and mercury levels in the US population is crucial for public health interventions and environmental policy-making. This study aims to examine the relationships between dietary sodium intake and blood pressure levels, as well as factors that influence blood mercury levels. The dataset analyzed is derived from the Center for Disease Control (CDC) survey data collected through interviews, blood tests, and medical examinations from August 2021 to August 2023. Multinomial regression was used to model blood pressure levels, and linear regression was applied to model blood mercury levels. The analysis revealed no significant association between dietary sodium consumption and blood pressure levels. However, age emerged as a significant predictor of hypertension (p \< 0.001). Older people are more likely to have hypertension. After preliminary data analysis and variable selection, tap water consumption showed a significant positive association with blood mercury levels (p \< 0.001). Race and income demonstrated significant interactive effects, with non-Hispanic Asian participants showing notably higher mercury levels (p \< 0.001). Our study identified key environmental and demographic factors affecting blood mercury levels, which can inform public health policies regarding water consumption and exposure to environmental toxins.
 
 ## Introduction
 
 Hypertension and environmental exposure to mercury are significant public health concerns worldwide. With hypertension, affecting over 1.28 billion adults worldwide with a majority in low- and middle-income countries, and environmental mercury exposure, linked to cardiovascular and neurological issues such as elevated blood pressure even at low levels, are significant global public health concerns (World Health Organization; Houston, p 621). Understanding the factors that influence these conditions is critical to improving health outcomes and developing targeted interventions. This study leverages data from the U.S Centers for Disease Control and Prevention (CDC), a nationally representative dataset, to explore two key research questions that address these pressing health issues.
 
-#### **Research Question 1**
-
 The first research question examines the association between dietary sodium intake and blood pressure levels, with a particular focus on whether the effect varies by factors such as gender and race. Blood pressure is an ordinal variable, categorized into four levels according to CDC guidelines, ranging from normal to Stage 2 hypertension (CDC, 2023). High dietary sodium intake has long been implicated as a risk factor for hypertension, a leading contributor to cardiovascular diseases globally (World Health Organization, 2021). Gender and race may further modulate this relationship due to physiological and social determinants of health, making it essential to explore these interactions. Answering this question provides insights that can inform dietary guidelines and public health policies aimed at reducing hypertension-related morbidity and mortality.
 
-#### **Research Question 2**
-
 The second research question investigates the impact of drinking water sources, such as tap or bottled water, on blood mercury levels. Blood mercury is a continuous variable that reflects exposure to mercury, a toxic heavy metal with known adverse effects on neurological and cardiovascular health (Agency for Toxic Substances and Disease Registry, 2023). Factors such as race may influence this relationship, potentially due to disparities in environmental exposure or differences in water consumption patterns. This question is vital because understanding the relationship between water sources and mercury exposure can guide environmental regulations and public health recommendations, particularly in vulnerable populations.
-
-#### **Significance of the Study**
 
 These research questions address two critical dimensions of health: dietary and environmental factors. By exploring the interplay between dietary sodium, drinking water sources, and key demographic factors, this study aims to provide actionable insights into mitigating the risks of hypertension and mercury toxicity. The findings have the potential to inform individual behavioral changes, public health interventions, and broader environmental and dietary policies.
 
@@ -65,7 +59,7 @@ These research questions address two critical dimensions of health: dietary and 
 
 ### Data Overview and Preprocessing
 
-The dataset used for the first research question consists of information on 7,795 individuals, including variables such as sodium intake, blood pressure categories, gender, race, age, and alcohol consumption. The outcome variable, **blood pressure category** (`BP_category`), is ordinal and categorized as *Normal*, *Elevated*, *Stage 1 Hypertension*, and *Stage 2 Hypertension* based on both the systolic and diastolic blood measurements as illustrated in the table below.
+The dataset used for the first research question consists of information on 7,801 observations, including variables such as sodium intake, blood pressure categories, gender, race, age, and alcohol consumption. The outcome variable, **blood pressure category**, is ordinal and categorized as *Normal*, *Elevated*, *Stage 1 Hypertension*, and *Stage 2 Hypertension* based on both the systolic and diastolic blood measurements as illustrated in the table below. There were 1830 observations with missing values for alcohol consumption and sodium intake and 323 observations have missing values in systolic and diastolic blood pressure measurements.
 
 ```{r, results='hide'}
 
@@ -95,7 +89,7 @@ print(colSums(is.na(data)))
 | Stage 1 Hypertension    | 130-139 mmHg            | or 80-89 mmHg            |
 | Stage 2 Hypertension    | ≥140 mmHg               | or ≥90 mmHg              |
 
-The systolic and diastolic blood measurements used in this analysis represent the mean of the three measurements taken for each participant in the original dataset. Predictor variables include continuous variables (e.g., sodium intake, age, alcohol consumption) and categorical variables (e.g., gender, race).
+The systolic and diastolic blood measurements used in this analysis represent the mean of the three measurements taken for each participant in the original dataset. These measurements were taken on three consecutive days. Predictor variables include continuous variables (e.g., sodium intake, age, alcohol consumption) and categorical variables (e.g., gender, race).
 
 For the second research question on blood mercury level, the data has 7785 observations, among which 2870 observations have missing values in either predictor or outcome variables. This dataset has missing values in variables of mercury level, income level, and water intakes of bottled water and tap water.
 
@@ -236,11 +230,9 @@ data$BP_category <- with(data,
 
 ### Model Fitting and Evaluation
 
-Initially, separate ordinal regression models were fitted to examine the relationship between blood pressure categories and each variable of interest individually. This approach allowed us to explore the individual associations of sodium intake, gender, and race with blood pressure categories before incorporating all variables into a comprehensive model. Covariates such as age, gender, race, and alcohol consumption were included in the combined model to adjust for potential confounders.
+To investigate the relationships between sodium intake and blood pressure categories, a multinomial logistic regression model was fitted. The initial model included main effects for sodium intake, age, gender, race, and alcohol consumption. Next, interaction terms between sodium intake and gender, as well as sodium intake and race, were introduced to determine whether the effect of sodium intake on blood pressure categories varied across these subgroups. This approach allowed us to explore potential effect modification by demographic factors.
 
-Interaction terms were introduced to investigate whether the effect of sodium intake on blood pressure categories varied by gender or race. The same procedure was applied when fitting a multinomial regression model to examine these relationships. Model comparisons were performed using the Akaike Information Criterion (AIC), which was appropriate for assessing the relative quality of nested models due to its ability to balance model fit and complexity.
-
-Additionally, a random forest model was fitted to the data as a non-linear, non-parametric approach to explore variable importance and potentially improve predictive accuracy. This step provided a complementary perspective to the regression models, particularly in identifying complex interactions or non-linear relationships that may not be captured by the regression models.
+Model comparisons were conducted using the Akaike Information Criterion (AIC), which evaluates the relative quality of statistical models by balancing goodness of fit and model complexity. Comparing the AIC values of the models with and without interaction terms helped determine whether the additional complexity introduced by the interactions was justified by an improved fit to the data.
 
 A multiple linear regression (MLR) model was used for modeling blood mercury levels. Residual vs fitted plot was used to test linearity and homoscedasticity. R-squared was used to evaluate the performance of the linear regression model.
 
