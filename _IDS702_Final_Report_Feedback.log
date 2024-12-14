@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.12.14)  14 DEC 2024 17:38
+This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.12.14)  14 DEC 2024 17:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -380,9 +380,28 @@ Package: multirow 2024/11/12 v2.9 Span multiple rows of a table
 \multirow@cntb=\count309
 \multirow@dima=\skip78
 \bigstrutjot=\dimen175
+) (c:/Users/DELL/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/wrapfig/wrapfig.sty
+\wrapoverhang=\dimen176
+\WF@size=\dimen177
+\c@WF@wrappedlines=\count310
+\WF@box=\box65
+\WF@everypar=\toks25
+Package: wrapfig 2003/01/31  v 3.6
+) (c:/Users/DELL/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/float/float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count311
+\float@exts=\toks26
+\float@box=\box66
+\@float@everytoks=\toks27
+\@floatcapt=\box67
+) (c:/Users/DELL/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/colortbl/colortbl.sty
+Package: colortbl 2024/07/06 v1.0i Color table columns (DPC)
+\everycr=\toks28
+\minrowclearance=\skip79
+\rownum=\count312
 )
 
-! LaTeX Error: File `wrapfig.sty' not found.
+! LaTeX Error: File `pdflscape.sty' not found.
 
 Type X to quit or <RETURN> to proceed,
 or enter new name. (Default extension: sty)
@@ -391,13 +410,13 @@ Enter file name:
 ! Emergency stop.
 <read *> 
          
-l.100 \usepackage
-                 {float}^^M 
+l.103 \usepackage
+                 {tabu}^^M 
 Here is how much of TeX's memory you used:
- 12539 strings out of 475963
- 266310 string characters out of 5776195
+ 12765 strings out of 475963
+ 269894 string characters out of 5776195
  926103 words of memory out of 5000000
- 35286 multiletter control sequences out of 15000+600000
+ 35500 multiletter control sequences out of 15000+600000
  558085 words of font info for 38 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  108i,1n,107p,10924b,271s stack positions out of 10000i,1000n,20000p,200000b,200000s

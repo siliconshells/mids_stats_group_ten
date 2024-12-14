@@ -462,10 +462,10 @@ Our statistical approach employed multiple linear regression with log-transforme
 ```{r data-2, include=FALSE, warning=FALSE}
 
 # Load datasets
-dr1tot <- read_xpt("/Users/zhangsu/Desktop/Original Files/DR1TOT_L.XPT")
-bpxo   <- read_xpt("/Users/zhangsu/Desktop/Original Files/BPXO_L.XPT")
-demo   <- read_xpt("/Users/zhangsu/Desktop/Original Files/DEMO_L.XPT")
-pbcd   <- read_xpt("/Users/zhangsu/Desktop/Original Files/PBCD_L.XPT")
+dr1tot <- read_xpt("https://github.com/siliconshells/mids_stats_group_ten/raw/refs/heads/main/00_source_data/cdc_data/DR1TOT_L.XPT")
+bpxo   <- read_xpt("https://github.com/siliconshells/mids_stats_group_ten/raw/refs/heads/main/00_source_data/cdc_data/BPXO_L.XPT")
+demo   <- read_xpt("https://github.com/siliconshells/mids_stats_group_ten/raw/refs/heads/main/00_source_data/cdc_data/DEMO_L.XPT")
+pbcd   <- read_xpt("https://github.com/siliconshells/mids_stats_group_ten/raw/refs/heads/main/00_source_data/cdc_data/PBCD_L.XPT")
 
 # Merge datasets on sequence number (SEQN)
 data_merged <- demo %>%
