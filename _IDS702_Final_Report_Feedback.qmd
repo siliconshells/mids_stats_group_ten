@@ -95,174 +95,114 @@ For the second research question on blood mercury level, the data has 7785 obser
 
 Stochastic regression imputations were used to handle missing values because (1) dataset size is large enough to build reliable imputation models; (2) missing values appear in both predictors and outcome; (3) maintains the natural associations in the data; (4) better than median or mean imputations, which are more arbitrary and underestimate variance. Extreme outliers in sodium intake and alcohol consumption were identified using visualizations (boxplots) and summary statistics. Sensitivity analyses were planned to evaluate the impact of including these points. Descriptive statistics (mean, median, range) and visualizations (histograms and boxplots) were used to summarize continuous variables. Bar charts and frequency tables were used to explore the distribution of categorical variables. Relationships between sodium intake and blood pressure levels were explored using boxplots and correlation analyses. Associations between other predictors (e.g., gender, age, race) and blood pressure categories were examined.
 
-```{r, results='hide'}
-# 1. Impute DR1TSODI
-data_for_model <- data_q1_3_measures %>%
-  filter(!is.na(DR1TSODI), !is.na(BPXOSY1), !is.na(BPXOSY2), !is.na(BPXOSY3),
-         !is.na(BPXODI1), !is.na(BPXODI2), !is.na(BPXODI3))
 
-# Build the linear model
-DR1TSODI_impute_model <- lm(DR1TSODI ~ BPXOSY1 + BPXOSY2 + BPXOSY3 +
-                            BPXODI1 + BPXODI2 + BPXODI3, data = data_for_model)
-
-# Identify rows where DR1TSODI is missing
-missing_DR1TSODI <- is.na(data_q1_3_measures$DR1TSODI)
-
-# Filter rows with missing DR1TSODI but no missing predictors for prediction
-rows_for_prediction <- data_q1_3_measures[missing_DR1TSODI, ] %>%
-  filter(!is.na(BPXOSY1), !is.na(BPXOSY2), !is.na(BPXOSY3),
-         !is.na(BPXODI1), !is.na(BPXODI2), !is.na(BPXODI3),)
-
-# Predict DR1TSODI for the rows where it can be predicted
-predicted_DR1TSODI <- predict(DR1TSODI_impute_model, newdata = rows_for_prediction)
-
-# Impute the predicted values back into the dataset
-data_q1_3_measures$DR1TSODI[missing_DR1TSODI] <- predicted_DR1TSODI
-
-
-# 
-# # 2. Impute BPXOSY1
-# data_for_model <- data_q1_3_measures %>%
-#   filter(!is.na(DR1TSODI), !is.na(BPXOSY1), !is.na(BPXOSY2), !is.na(BPXOSY3),
-#          !is.na(DR1TALCO), !is.na(BPXODI2), !is.na(BPXODI3))
-# 
-# # Build the linear model
-# BPXOSY1_impute_model <- lm(BPXOSY1 ~ DR1TSODI + BPXOSY2 + BPXOSY3 +
-#                             DR1TALCO + BPXODI2 + BPXODI3, data = data_for_model)
-# 
-# # Identify rows where BPXOSY1 is missing
-# missing_BPXOSY1 <- is.na(data_q1_3_measures$BPXOSY1)
-# 
-# # Filter rows with missing BPXOSY1 but no missing predictors for prediction
-# rows_for_prediction <- data_q1_3_measures[missing_BPXOSY1, ] %>%
-#   filter(!is.na(DR1TSODI), !is.na(BPXOSY2), !is.na(BPXOSY3),
-#          !is.na(DR1TALCO), !is.na(BPXODI2), !is.na(BPXODI3),)
-# 
-# # Predict BPXOSY1 for the rows where it can be predicted
-# predicted_BPXOSY1 <- predict(BPXOSY1_impute_model, newdata = rows_for_prediction)
-# 
-# # Impute the predicted values back into the dataset
-# data_q1_3_measures$BPXOSY1[missing_BPXOSY1] <- predicted_BPXOSY1
-# 
-
-
-# # 2. Impute BPXOSY1 ()
-# BPXOSY1_impute_model <- lm(BPXOSY1 ~ DR1TSODI + BPXOSY2 + BPXOSY3 + BPXODI1 + BPXODI2 + BPXODI3 + DR1TALCO,
-#                          data = subset(data_q1_3_measures, !is.na(BPXOSY1)))
-# 
-# missing_BPXOSY1 <- is.na(data_q1_3_measures$BPXOSY1)
-# predicted_BPXOSY1 <- predict(BPXOSY1_impute_model, newdata = data_q1_3_measures[missing_BPXOSY1,])
-# 
-# BPXOSY1_noise <- rnorm(n = length(predicted_BPXOSY1),
-#                       mean = 0,
-#                       sd = summary(BPXOSY1_impute_model)$sigma)
-# 
-# data_q1_3_measures$BPXOSY1[missing_BPXOSY1] <- predicted_BPXOSY1 + BPXOSY1_noise
-#
-
-
-
-# # 3. Impute BPXOSY2 ()
-# BPXOSY2_impute_model <- lm(BPXOSY2 ~ DR1TSODI + BPXOSY1 + BPXOSY3 + BPXODI1 + BPXODI2 + BPXODI3 + DR1TALCO,
-#                          data = subset(data_q1_3_measures, !is.na(BPXOSY2)))
-# 
-# missing_BPXOSY2 <- is.na(data_q1_3_measures$BPXOSY2)
-# predicted_BPXOSY2 <- predict(BPXOSY2_impute_model, newdata = data_q1_3_measures[missing_BPXOSY2,])
-# 
-# BPXOSY2_noise <- rnorm(n = length(predicted_BPXOSY2),
-#                       mean = 0,
-#                       sd = summary(BPXOSY2_impute_model)$sigma)
-# 
-# data_q1_3_measures$BPXOSY2[missing_BPXOSY2] <- predicted_BPXOSY2 + BPXOSY2_noise
-# 
-# # 4. Impute BPXOSY3 ()
-# BPXOSY3_impute_model <- lm(BPXOSY3 ~ DR1TSODI + BPXOSY1 + BPXOSY2 + BPXODI1 + BPXODI2 + BPXODI3 + DR1TALCO,
-#                          data = subset(data_q1_3_measures, !is.na(BPXOSY3)))
-# 
-# missing_BPXOSY3 <- is.na(data_q1_3_measures$BPXOSY3)
-# predicted_BPXOSY3 <- predict(BPXOSY3_impute_model, newdata = data_q1_3_measures[missing_BPXOSY3,])
-# 
-# BPXOSY3_noise <- rnorm(n = length(predicted_BPXOSY3),
-#                       mean = 0,
-#                       sd = summary(BPXOSY3_impute_model)$sigma)
-# 
-# data_q1_3_measures$BPXOSY3[missing_BPXOSY3] <- predicted_BPXOSY3 + BPXOSY3_noise
-# 
-# 
-# # 5. Impute BPXODI1 ()
-# BPXODI1_impute_model <- lm(BPXODI1 ~ DR1TSODI + BPXOSY1 + BPXOSY2 + BPXOSY3 + BPXODI2 + BPXODI3 + DR1TALCO,
-#                          data = subset(data_q1_3_measures, !is.na(BPXODI1)))
-# 
-# missing_BPXODI1 <- is.na(data_q1_3_measures$BPXODI1)
-# predicted_BPXODI1 <- predict(BPXODI1_impute_model, newdata = data_q1_3_measures[missing_BPXODI1,])
-# 
-# BPXODI1_noise <- rnorm(n = length(predicted_BPXODI1),
-#                       mean = 0,
-#                       sd = summary(BPXODI1_impute_model)$sigma)
-# 
-# data_q1_3_measures$BPXODI1[missing_BPXODI1] <- predicted_BPXODI1 + BPXODI1_noise
-# 
-# # 6. Impute BPXODI2 ()
-# BPXODI2_impute_model <- lm(BPXODI2 ~ DR1TSODI + BPXOSY1 + BPXOSY2 + BPXOSY3 + BPXODI1 + BPXODI3 + DR1TALCO,
-#                          data = subset(data_q1_3_measures, !is.na(BPXODI2)))
-# 
-# missing_BPXODI2 <- is.na(data_q1_3_measures$BPXODI2)
-# predicted_BPXODI2 <- predict(BPXODI2_impute_model, newdata = data_q1_3_measures[missing_BPXODI2,])
-# 
-# BPXODI2_noise <- rnorm(n = length(predicted_BPXODI2),
-#                       mean = 0,
-#                       sd = summary(BPXODI2_impute_model)$sigma)
-# 
-# data_q1_3_measures$BPXODI2[missing_BPXODI2] <- predicted_BPXODI2 + BPXODI2_noise
-# 
-# 
-# # 7. Impute BPXODI3 ()
-# BPXODI3_impute_model <- lm(BPXODI3 ~ DR1TSODI + BPXOSY1 + BPXOSY2 + BPXOSY3 + BPXODI1 + BPXODI2 + DR1TALCO,
-#                          data = subset(data_q1_3_measures, !is.na(BPXODI3)))
-# 
-# missing_BPXODI3 <- is.na(data_q1_3_measures$BPXODI3)
-# predicted_BPXODI3 <- predict(BPXODI3_impute_model, newdata = data_q1_3_measures[missing_BPXODI3,])
-# 
-# BPXODI3_noise <- rnorm(n = length(predicted_BPXODI3),
-#                       mean = 0,
-#                       sd = summary(BPXODI3_impute_model)$sigma)
-# 
-# data_q1_3_measures$BPXODI3[missing_BPXODI3] <- predicted_BPXODI3 + BPXODI3_noise
-# 
-# 
-# # 8. Impute DR1TALCO ()
-# DR1TALCO_impute_model <- lm(DR1TALCO ~ DR1TSODI + BPXOSY1 + BPXOSY2 + BPXOSY3 + BPXODI1 + BPXODI2 + BPXODI3,
-#                          data = subset(data_q1_3_measures, !is.na(DR1TALCO)))
-# 
-# missing_DR1TALCO <- is.na(data_q1_3_measures$DR1TALCO)
-# predicted_DR1TALCO <- predict(DR1TALCO_impute_model, newdata = data_q1_3_measures[missing_DR1TALCO,])
-# 
-# DR1TALCO_noise <- rnorm(n = length(predicted_DR1TALCO),
-#                       mean = 0,
-#                       sd = summary(DR1TALCO_impute_model)$sigma)
-# 
-# data_q1_3_measures$DR1TALCO[missing_DR1TALCO] <- predicted_DR1TALCO + DR1TALCO_noise
-
-
-
-# Verify no missing values remain
-colSums(is.na(data_q1_3_measures))
-```
 
 ```{r, results='hide'}
 # take the mean of the three blood pressure measurements (both systolic and diastolic)
-# Clone data_q1_3_measures
-data_q1 <- data.frame(data_q1_3_measures)
+data_q1_3_measures$BPXOSY <- rowMeans(data_q1_3_measures[, c("BPXOSY1", "BPXOSY2", "BPXOSY3")], na.rm = FALSE)
+data_q1_3_measures$BPXODI <- rowMeans(data_q1_3_measures[, c("BPXODI1", "BPXODI2", "BPXODI3")], na.rm = FALSE)
 
-data_q1$BPXOSY <- rowMeans(data_q1[, c("BPXOSY1", "BPXOSY2", "BPXOSY3")], na.rm = TRUE)
-data_q1$BPXODI <- rowMeans(data_q1[, c("BPXODI1", "BPXODI2", "BPXODI3")], na.rm = TRUE)
-# select columns of interest for the first research question
-data_q1 <- data_q1 %>%
+data_q1_3_measures <- data_q1_3_measures %>%
   dplyr::select(SEQN, RIAGENDR, RIDAGEYR, RIDRETH3, DR1TSODI, BPXOSY, BPXODI, DR1TALCO)
 # Renaming columns
-colnames(data_q1) <- c("Sequence_no", "Gender", "Age", "Race", "Sodium_intake", "Systolic_BP", "Diastolic_BP", "Alcohol_consumption")
-glimpse(data_q1)
+colnames(data_q1_3_measures) <- c("Sequence_no", "Gender", "Age", "Race", "Sodium_intake", "Systolic_BP", "Diastolic_BP", "Alcohol_consumption")
+
+print(colSums(is.na(data_q1_3_measures)))
 ```
+
+
+```{r, results='hide'}
+data_q1 <- data.frame(data_q1_3_measures)
+
+
+# 1. Impute Sodium_intake
+data_for_model <- data_q1_3_measures %>%
+  filter(!is.na(Sodium_intake), !is.na(Systolic_BP), !is.na(Diastolic_BP))
+
+# Build the linear model
+Sodium_intake_impute_model <- lm(Sodium_intake ~ Systolic_BP + Diastolic_BP, data = data_for_model)
+
+# Identify rows where Sodium_intake is missing
+missing_Sodium_intake <- is.na(data_q1_3_measures$Sodium_intake)
+
+# Filter rows with missing Sodium_intake but no missing predictors for prediction
+rows_for_prediction <- data_q1_3_measures[missing_Sodium_intake, ] %>%
+  filter(!is.na(Systolic_BP), !is.na(Diastolic_BP))
+
+# Predict Sodium_intake for the rows where it can be predicted
+predicted_Sodium_intake <- predict(Sodium_intake_impute_model, newdata = rows_for_prediction)
+
+# Impute the predicted values back into the dataset
+data_q1$Sodium_intake[missing_Sodium_intake] <- predicted_Sodium_intake
+
+
+
+# 2. Impute Systolic_BP
+data_for_model <- data_q1 %>%
+  filter(!is.na(Sodium_intake), !is.na(Systolic_BP), !is.na(Alcohol_consumption))
+
+# Build the linear model
+Systolic_BP_impute_model <- lm(Systolic_BP ~ Sodium_intake + Alcohol_consumption, data = data_for_model)
+
+# Identify rows where Systolic_BP is missing
+missing_Systolic_BP <- is.na(data_q1$Systolic_BP)
+
+# Filter rows with missing Systolic_BP but no missing predictors for prediction
+rows_for_prediction <- data_q1[missing_Systolic_BP, ] %>%
+  filter(!is.na(Sodium_intake), !is.na(Alcohol_consumption))
+
+# Predict Systolic_BP for the rows where it can be predicted
+predicted_Systolic_BP <- predict(Systolic_BP_impute_model, newdata = rows_for_prediction)
+
+# Impute the predicted values back into the dataset
+data_q1$Systolic_BP[missing_Systolic_BP] <- predicted_Systolic_BP
+
+
+# 3. Impute Diastolic_BP
+data_for_model <- data_q1 %>%
+  filter(!is.na(Sodium_intake), !is.na(Diastolic_BP), !is.na(Alcohol_consumption))
+
+# Build the linear model
+Diastolic_BP_impute_model <- lm(Diastolic_BP ~ Sodium_intake + Alcohol_consumption, data = data_for_model)
+
+# Identify rows where Diastolic_BP is missing
+missing_Diastolic_BP <- is.na(data_q1$Diastolic_BP)
+
+# Filter rows with missing Diastolic_BP but no missing predictors for prediction
+rows_for_prediction <- data_q1[missing_Diastolic_BP, ] %>%
+  filter(!is.na(Sodium_intake), !is.na(Alcohol_consumption))
+
+# Predict Diastolic_BP for the rows where it can be predicted
+predicted_Diastolic_BP <- predict(Diastolic_BP_impute_model, newdata = rows_for_prediction)
+
+# Impute the predicted values back into the dataset
+data_q1$Diastolic_BP[missing_Diastolic_BP] <- predicted_Diastolic_BP
+
+
+# 4. Impute Alcohol_consumption
+data_for_model <- data_q1_3_measures %>%
+  filter(!is.na(Alcohol_consumption), !is.na(Systolic_BP), !is.na(Diastolic_BP))
+
+# Build the linear model
+Alcohol_consumption_impute_model <- lm(Alcohol_consumption ~ Systolic_BP + Diastolic_BP, data = data_for_model)
+
+# Identify rows where Alcohol_consumption is missing
+missing_Alcohol_consumption <- is.na(data_q1_3_measures$Alcohol_consumption)
+
+# Filter rows with missing Alcohol_consumption but no missing predictors for prediction
+rows_for_prediction <- data_q1_3_measures[missing_Alcohol_consumption, ] %>%
+  filter(!is.na(Systolic_BP), !is.na(Diastolic_BP))
+
+# Predict Alcohol_consumption for the rows where it can be predicted
+predicted_Alcohol_consumption <- predict(Alcohol_consumption_impute_model, newdata = rows_for_prediction)
+
+# Impute the predicted values back into the dataset
+data_q1$Alcohol_consumption[missing_Alcohol_consumption] <- predicted_Alcohol_consumption
+
+# Verify no missing values remain
+colSums(is.na(data_q1))
+```
+
 
 ```{r, results='hide'}
 data_q1$BP_category <- with(data_q1, 
