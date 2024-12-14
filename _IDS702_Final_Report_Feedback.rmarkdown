@@ -40,6 +40,8 @@ library(skimr)
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 ```
 
+
+
 ## Abstract
 
 Investigating factors influencing blood pressure and mercury levels in the US population is crucial for public health interventions and environmental policy-making. This study aims to examine the relationships between dietary sodium intake and blood pressure levels, as well as factors that influence blood mercury levels. The dataset analyzed is derived from the Center for Disease Control (CDC) survey data collected through interviews, blood tests, and medical examinations from August 2021 to August 2023. Multinomial regression was used to model blood pressure levels, and linear regression was applied to model blood mercury levels. The analysis revealed no significant association between dietary sodium consumption and blood pressure levels. However, age emerged as a significant predictor of hypertension (p \< 0.001). As Age increases, the likelihood of having Stage 2 Hypertension (versus Normal) increases, holding other factors constant. Tap water intakes, age, and income level have a significant positive association with blood mercury level (p \< 0.001). Non-Hispanic Asians have significantly higher mercury level (149.9%) compared with reference group of Mexicans Americans. Females on average have mercury levels 8% lower compared to males. Our study identified key water intake and demographic factors affecting blood mercury levels, which can inform public health policies regarding water consumption and exposure to environmental toxins.
@@ -59,6 +61,8 @@ These research questions address two critical dimensions of health: dietary and 
 ### Data Overview and Preprocessing
 
 The dataset used for the first research question consists of information on 7,801 observations, including variables such as sodium intake, blood pressure categories, gender, race, age, and alcohol consumption. The outcome variable, **blood pressure category**, is ordinal and categorized as *Normal*, *Elevated*, *Stage 1 Hypertension*, and *Stage 2 Hypertension* based on both the systolic and diastolic blood measurements as illustrated in the table below. There were 1830 observations with missing values for alcohol consumption and sodium intake and 323 observations have missing values in systolic and diastolic blood pressure measurements.
+
+
 
 ```{r, results='hide'}
 
@@ -81,6 +85,8 @@ data_q1_3_measures <- data_merged_q1 %>%
 print(colSums(is.na(data_q1_3_measures)))
 ```
 
+
+
 | Blood Pressure Category | Systolic Blood Pressure | Diastolic Blood Pressure |
 |------------------------|------------------------|-------------------------|
 | Normal                  | \<120 mmHg              | and \<80 mmHg            |
@@ -93,6 +99,8 @@ The systolic and diastolic blood measurements used in this analysis represent th
 For the second research question on blood mercury level, the data has 7785 observations, among which 2870 observations have missing values in either predictor or outcome variables. This dataset has missing values in variables of mercury level, income level, and water intakes of bottled water and tap water.
 
 Stochastic regression imputations were used to handle missing values because (1) dataset size is large enough to build reliable imputation models; (2) missing values appear in both predictors and outcome variables; (3) maintains the natural associations in the data; (4) better than median or mean imputations, which are more arbitrary and underestimate variance. Extreme outliers in sodium intake and alcohol consumption were identified using visualizations (boxplots) and summary statistics. Sensitivity analyses were planned to evaluate the impact of including these points. Descriptive statistics (mean, median, range) and visualizations (histograms and boxplots) were used to summarize continuous variables. Bar charts and frequency tables were used to explore the distribution of categorical variables. Relationships between sodium intake and blood pressure levels were explored using boxplots and correlation analyses. Associations between other predictors (e.g., gender, age, race) and blood pressure categories were examined.
+
+
 
 ```{r, results='hide'}
 # take the mean of the three blood pressure measurements (both systolic and diastolic)
@@ -227,6 +235,8 @@ data_q1$BP_category <- with(data_q1,
 #data_q1 <- data_q1[!is.na(data_q1$BP_category), ]
 ```
 
+
+
 ### Model Fitting and Evaluation
 
 To examine the relationships between sodium intake and blood pressure categories, a multinomial logistic regression model was developed. The initial model included main effects for sodium intake, age, gender, race, and alcohol consumption. Interaction terms between sodium intake and gender, as well as sodium intake and race, were later introduced to assess whether the effect of sodium intake on blood pressure categories varied across these demographic subgroups. This allowed for the evaluation of potential effect modification.
@@ -254,6 +264,8 @@ Third, we noted that the "Normal" blood pressure category had the highest number
 | Systolic Blood Pressure  |   71.33 |  232.33 |  119.04 |              17.86 |
 | Alcohol Consumption      |   -0.66 |   448.1 |    6.02 |              17.68 |
 | Age                      |       8 |      80 |   44.83 |              22.72 |
+
+
 
 ```{r, results='hide'}
 data_q1$Race <- as.factor(data_q1$Race)
@@ -453,11 +465,15 @@ kable(vif_values, caption = "Variance Inflation Factor (VIF) with Interaction Te
   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 
+
+
 The model's AIC of 12037.52 reflects a balance between complexity and fit. The confusion matrix shows the highest accuracy in predicting the "Normal" category but some misclassifications among hypertensive stages. The multinomial regression model revealed key associations between blood pressure categories and predictor variables. For "Elevated," the coefficient for sodium intake is negative (-0.000039), suggesting that increased sodium intake may be associated with reduced odds of being in this category compared to "Normal," though the effect size is very small. For "Stage 1" and "Stage 2 Hypertension," the coefficients are positive but small, indicating a slight increase in the odds of being in these categories with increased sodium intake. Age and alcohol consumption were positively associated with higher blood pressure categories, while gender and race demonstrated significant variation; for instance, females had lower odds of elevated and hypertensive categories, and "Non-Hispanic Black" was associated with higher odds of "Stage 1" and "Stage 2 Hypertension." Interaction terms highlighted nuanced relationships, such as weaker sodium intake effects for females but varying effects across racial groups. Predicted probabilities provided insights into classification confidence, with age and alcohol consistently influencing outcomes. While the model converged successfully, the modest effect sizes for some predictors and potential for further refinement suggest opportunities for further investigation.
 
 ### Research Question 2: Contributing Factors of Blood Mercury Level
 
 Our statistical approach employed multiple linear regression with log-transformed mercury levels as the dependent variable, addressing both the non-normal distribution of mercury concentrations and the presence of detection limits in the measurements. The model incorporated water consumption variables (tap and bottled water intake), demographic characteristics (race, gender, age), and socioeconomic status (income-to-poverty ratio) to capture the complex relationships between these factors. Below is a summary descriptive statistics of both dependent variable and priori predictor variables. 
+
+
 
 ```{r data-2, include=FALSE, warning=FALSE}
 
@@ -601,7 +617,11 @@ kable(
   )
 ```
 
+
+
 #### EDA
+
+
 
 ```{r plots-2b, echo=FALSE}
 # Mecury levels
@@ -648,7 +668,11 @@ print(plot2b1)
 # print(plot2b2)
 ```
 
+
+
 1.  **Mercury Levels vs. Water Consumption** The faceted scatter plot examined the relationships between mercury levels and water intake across three types of water consumption (tap water, bottled water, and combined plain water). Linear trend lines showed that higher consumption of tap water might led to a slightly increase in blood mercury levels in people versus bottled water which had no change in blood mercury levels as more is consumed.
+
+
 
 ```{r plots-3b, echo=FALSE}
 # Filter relevant columns, including the updated race variable RIDRETH3
@@ -697,7 +721,11 @@ print(plot_violin)
 
 ```
 
+
+
 2.  **Mercury Levels by Race/Ethnicity** The violin plot was used to compare mercury distributions across racial/ethnic groups. This graph shows that mercury levels vary significantly across racial and ethnic groups, with Non-Hispanic Asians having the highest levels and the widest distribution. We can see that most distribution are right-skewed meaning that most individuals in all racial categories have low mercury levels, but there are noticeable outliers, especially among Non-Hispanic Asians and Non-Hispanic Blacks.
+
+
 
 ```{r,include=FALSE}
 # Pick only the columns of interest
@@ -781,11 +809,15 @@ data$log_LBXTHG <- log(data$LBXTHG)
 colSums(is.na(data))
 ```
 
+
+
 We initially fit a multiple linear regression model towards the blood mercury levels. However, in the residuals vs fitted graph (in the appendix section), the spread of residuals increases as the fitted values grow, indicating heteroscedasticity. The Q-Q plot (in the appendix section) deviates significantly from the 45-degree reference line, particularly at the extremes (tails of the distribution), indicating that the residuals are not normally distributed. These suggest a potential violation of the normality assumption. Therefore, we log-transformed the dependent variable to stabilize the variance and help normalize the residuals.
 
 When fitting the model, we tried to include interaction term between race and family income to poverty level, because the influence of income on health outcomes such as mercury levels might vary by race due to differences in access to healthcare, dietary habits, or exposure to environmental risk factors and we want to take the heterogeneous effects into considerations. However, the interaction between race and income level has a transformed GVIF value of 2.185 (outputs could be found in appendix), which is slightly high and creates multicollinearity. Therefore, we decided to remove the interaction term and examine the effects of race and income level separately. 
 
 We also examined the influential points using Cook's distance and marked the top 5 influential points in below graph. We then refit the model again after removing these influential points (the model results outputs and residual plots can be found in appendix section). We also attempted to remove high leverage points using the threshold of $h_i > \frac{2(p+1)}{n}$. However, removing influential points did not significant change the model results (adjusted R-squared and p-values). Therefore, we decided to keep these influential points in the model. 
+
+
 
 ```{r}
 # Log-transform the dependent variable
@@ -809,9 +841,13 @@ text(x = top_points, y = cooks_d[top_points],
 
 ```
 
+
+
 Therefore, the final model was to fit logged blood mercury level using age, gender, race, income levels, tap water intake and bottle water intake. The final model outputs are in below table. To make the coefficients easier to interpret, we performed a back-transformation by exponentiating the regression coefficients and their confidence intervals to interpret the results on the original scale of mercury levels rather than their logged value. This allows us to describe how each predictor multiplicatively affects mercury levels, providing more meaningful and practical insights.
 
 The model summary output shows that tap water intakes has a significant positive association with p-value less than 0.001, whereas bottled water intake has no significant effect (with p-value of 0.151). For the variable of race, compared to the reference level of Mexican Americans, non-Hispanic Asians have 149.9% higher mercury levels, while non-Hispanic, non-Hispanic Black and other races have 45%, 27.4%, 18.7% higher mercury levels respectively. The only racial group that has lower mercury level compared to Mexican Americans is non-Hispanic White, which estimated to be 9% lower than the reference group. For demographic factors, both age and income level have positive association with mercury levels (with p-value \< 0.001). Holding all other variables constant, for every unit increase in the income-to-poverty ratio, mercury levels increase by 14.2%, which is a bit counter-intuitive, as the richer family have higher blood mercury level. Each additional year of age is associated with a 1.4% increase in mercury levels. For gender, females, compared to males (the reference group), have mercury levels that are 8% lower.
+
+
 
 
 ```{r}
@@ -859,6 +895,8 @@ kable(results_matrix,
 
 ```
 
+
+
 The model is statistically significant (F-statistic = 116.8, p \< 0.001) and explains 12.93% of the variance in blood mercury levels with an adjusted R-squared of 0.1293. The model's low R-squared value is probably because of two possible reasons: (1) There are outstanding outliers of blood mercury levels, but our model's predictor variables on demographics and water drinking types are unlikely to be the key reasons that cause these extremely high mercury levels. The key reason that could lead to extremely high levels could be environmental factors, such as serious chemical pollution. (2) For the mercury exam results, there is lower detection limit. When the actual mercury level is less than this detection limit of 0.21 µg/L, the value would be recorded as 0.12 µg/L, which is actual detection limit divided by the square root of 2. This creates a large cluster of identical values and true values below detection limit are unknown, which makes it harder for the model to explain variation that's artificially removed.
 
 We also evaluated the residual plots of the model (plots are in the appendix section). For the residual plot, there are straight lines in the middle, which is caused by the detection limit of mercury level. For the Q-Q plot, the points follow the diagonal line closely, suggesting good normality in the central part of the distribution. However, there are some deviations in both tails, which are likely due to the outliers in the mercury level. VIF analysis is done and there is no multicollinearity issue in this model.
@@ -893,6 +931,8 @@ National Center for Biotechnology Information. (2021). The clinical consequences
 
 **Residual plots for original model without log transformation**
 
+
+
 ```{r}
 model <- lm(LBXTHG ~ DR1_330Z + DR1BWATZ + Race + INDFMPIR + 
                    Gender + RIDAGEYR, 
@@ -908,7 +948,11 @@ plot(model, which = 2)  # Normal Q-Q Plot
 # par(mfrow = c(1, 1))
 ```
 
+
+
 **Residual plots for finalized model**
+
+
 
 ```{r}
 #par(mfrow = c(1, 2))
@@ -921,7 +965,11 @@ plot(model_updated, which = 2)  # Normal Q-Q Plot
 # par(mfrow = c(1, 1))
 ```
 
+
+
 **VIF analysis of MLR model if include interaction term between race and income level**
+
+
 
 ```{r}
 model_interaction <- lm(log_LBXTHG ~ DR1_330Z + DR1BWATZ + Race*INDFMPIR + 
@@ -931,7 +979,11 @@ vif(model_interaction)
 ```
 
 
+
+
 **MLR model results and residual plots after removing top 5 influential points examined through Cook's distance**
+
+
 
 ```{r}
 data_filtered <- data[-top_points, ]
@@ -946,7 +998,11 @@ plot(model_refit)
 vif(model_refit)
 ```
 
+
+
 **MLR model results and residual plots after removing influential points higher than high leverage threshold**:
+
+
 
 ```{r}
 # Calculate leverage values
