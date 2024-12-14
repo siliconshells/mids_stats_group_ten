@@ -1,0 +1,890 @@
+---
+title: "Exploring the Impact of Dietary and Environmental Factors on Hypertension and Mercury Exposure"
+author: "Danish Maknojia, Mona Saeed, Leonard Eshun, Su Zhang"
+subtitle: "2024-12-08"
+format: pdf
+header-includes:
+      - \usepackage{float}
+      - \floatplacement{table}{H}
+      - \usepackage{booktabs}
+      - \usepackage{caption}
+
+execute:
+  echo: false
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(patchwork)
+library(haven)  
+library(tidyr)
+library(hoopR)
+library(foreign)   
+library(dplyr)
+library(tidyr)
+library(MASS)
+library(nnet)
+library(car)
+library(brant)
+library(pscl)
+library(tidyverse)
+library(caret)
+library(modelsummary)
+library(knitr)
+library(kableExtra)
+
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+
+## Abstract
+
+Investigating factors influencing blood pressure and mercury levels in the US population is crucial for public health interventions and environmental policy-making. This study aims to examine the relationships between dietary sodium intake and blood pressure levels, as well as factors that influence blood mercury levels. The dataset analyzed is derived from the Center for Disease Control (CDC) survey data collected through interviews, blood tests, and medical examinations from August 2021 to August 2023. Multinomial regression was used to model blood pressure levels, and linear regression was applied to model blood mercury levels. The analysis revealed no significant association between dietary sodium consumption and blood pressure levels. However, age emerged as a significant predictor of hypertension (p \< 0.001). After preliminary data analysis and variable selection, tap water consumption showed a significant positive association with blood mercury levels (p \< 0.001). Race and income demonstrated significant interactive effects, with non-Hispanic Asian participants showing notably higher mercury levels (p \< 0.001). Our study identified key environmental and demographic factors affecting blood mercury levels, which can inform public health policies regarding water consumption and exposure to environmental toxins.
+
+## Introduction
+
+Hypertension and environmental exposure to mercury are significant public health concerns worldwide. With hypertension, affecting over 1.28 billion adults worldwide with a majority in low- and middle-income countries, and environmental mercury exposure, linked to cardiovascular and neurological issues such as elevated blood pressure even at low levels, are significant global public health concerns (World Health Organization; Houston, p 621). Understanding the factors that influence these conditions is critical to improving health outcomes and developing targeted interventions. This study leverages data from the U.S Centers for Disease Control and Prevention (CDC), a nationally representative dataset, to explore two key research questions that address these pressing health issues.
+
+#### **Research Question 1**
+
+The first research question examines the association between dietary sodium intake and blood pressure levels, with a particular focus on whether the effect varies by factors such as gender and race. Blood pressure is an ordinal variable, categorized into four levels according to CDC guidelines, ranging from normal to Stage 2 hypertension (CDC, 2023). High dietary sodium intake has long been implicated as a risk factor for hypertension, a leading contributor to cardiovascular diseases globally (World Health Organization, 2021). Gender and race may further modulate this relationship due to physiological and social determinants of health, making it essential to explore these interactions. Answering this question provides insights that can inform dietary guidelines and public health policies aimed at reducing hypertension-related morbidity and mortality.
+
+#### **Research Question 2**
+
+The second research question investigates the impact of drinking water sources, such as tap or bottled water, on blood mercury levels. Blood mercury is a continuous variable that reflects exposure to mercury, a toxic heavy metal with known adverse effects on neurological and cardiovascular health (Agency for Toxic Substances and Disease Registry, 2023). Factors such as race may influence this relationship, potentially due to disparities in environmental exposure or differences in water consumption patterns. This question is vital because understanding the relationship between water sources and mercury exposure can guide environmental regulations and public health recommendations, particularly in vulnerable populations.
+
+#### **Significance of the Study**
+
+These research questions address two critical dimensions of health: dietary and environmental factors. By exploring the interplay between dietary sodium, drinking water sources, and key demographic factors, this study aims to provide actionable insights into mitigating the risks of hypertension and mercury toxicity. The findings have the potential to inform individual behavioral changes, public health interventions, and broader environmental and dietary policies.
+
+## Methods
+
+### Data Overview and Preprocessing
+
+The dataset used for the first research question consists of information on 7,795 individuals, including variables such as sodium intake, blood pressure categories, gender, race, age, and alcohol consumption. The outcome variable, **blood pressure category** (`BP_category`), is ordinal and categorized as *Normal*, *Elevated*, *Stage 1 Hypertension*, and *Stage 2 Hypertension* based on both the systolic and diastolic blood measurements as illustrated in the table below.
+
+```{r, results='hide'}
+
+# Load datasets
+dietary <- read_xpt("/Users/danishmak/Documents/Original Files/DR1TOT_L.XPT")
+BP   <- read_xpt("/Users/danishmak/Documents/Original Files/BPXO_L.XPT")
+demographics   <- read_xpt("/Users/danishmak/Documents/Original Files/DEMO_L.XPT")
+mercury   <- read_xpt("/Users/danishmak/Documents/Original Files/PBCD_L.XPT")
+
+# Merge datasets on sequence number (SEQN)
+data_merged <- demographics %>%
+  inner_join(BP, by = "SEQN") %>%
+  inner_join(dietary, by = "SEQN") %>%
+  inner_join(mercury, by = "SEQN")
+
+# Pick only the columns of interest
+data <- data_merged %>%
+  dplyr::select(SEQN, RIAGENDR, RIDAGEYR, RIDRETH1, RIDRETH3, DR1TSODI, BPXOSY1, BPXOSY2, BPXOSY3, BPXODI1, BPXODI2, BPXODI3, DR1TALCO)
+
+print(colSums(is.na(data)))
+```
+
+| Blood Pressure Category | Systolic Blood Pressure | Diastolic Blood Pressure |
+|-------------------------|-------------------------|--------------------------|
+| Normal                  | \<120 mmHg              | and \<80 mmHg            |
+| Elevated                | 120-129 mmHg            | and \<80 mmHg            |
+| Stage 1 Hypertension    | 130-139 mmHg            | or 80-89 mmHg            |
+| Stage 2 Hypertension    | ≥140 mmHg               | or ≥90 mmHg              |
+
+The systolic and diastolic blood measurements used in this analysis represent the mean of the three measurements taken for each participant in the original dataset. Predictor variables include continuous variables (e.g., sodium intake, age, alcohol consumption) and categorical variables (e.g., gender, race).
+
+For the second research question on blood mercury level, the data has 7785 observations, among which 2870 observations have missing values in either predictor or outcome variables. This dataset has missing values in variables of mercury level, income level, and water intakes of bottled water and tap water.
+
+Stochastic regression imputations were used to handle missing values because (1) dataset size is large enough to build reliable imputation models; (2) missing values appear in both predictors and outcome; (3) maintains the natural associations in the data; (4) better than median or mean imputations, which are more arbitrary and underestimate variance. Extreme outliers in sodium intake and alcohol consumption were identified using visualizations (boxplots) and summary statistics. Sensitivity analyses were planned to evaluate the impact of including these points. Descriptive statistics (mean, median, range) and visualizations (histograms and boxplots) were used to summarize continuous variables. Bar charts and frequency tables were used to explore the distribution of categorical variables. Relationships between sodium intake and blood pressure levels were explored using boxplots and correlation analyses. Associations between other predictors (e.g., gender, age, race) and blood pressure categories were examined.
+
+```{r, results='hide'}
+# 1. Impute DR1TSODI ()
+DR1TSODI_impute_model <- lm(DR1TSODI ~ BPXOSY1 + BPXOSY2 + BPXOSY3 + BPXODI1 + BPXODI2 + BPXODI3 + DR1TALCO,
+                         data = subset(data, !is.na(DR1TSODI)))
+
+missing_DR1TSODI <- is.na(data$DR1TSODI)
+predicted_DR1TSODI <- predict(DR1TSODI_impute_model, newdata = data[missing_DR1TSODI,])
+
+DR1TSODI_noise <- rnorm(n = length(predicted_DR1TSODI),
+                      mean = 0,
+                      sd = summary(DR1TSODI_impute_model)$sigma)
+
+data$DR1TSODI[missing_DR1TSODI] <- predicted_DR1TSODI + DR1TSODI_noise
+
+# 2. Impute BPXOSY1 ()
+BPXOSY1_impute_model <- lm(BPXOSY1 ~ DR1TSODI + BPXOSY2 + BPXOSY3 + BPXODI1 + BPXODI2 + BPXODI3 + DR1TALCO,
+                         data = subset(data, !is.na(BPXOSY1)))
+
+missing_BPXOSY1 <- is.na(data$BPXOSY1)
+predicted_BPXOSY1 <- predict(BPXOSY1_impute_model, newdata = data[missing_BPXOSY1,])
+
+BPXOSY1_noise <- rnorm(n = length(predicted_BPXOSY1),
+                      mean = 0,
+                      sd = summary(BPXOSY1_impute_model)$sigma)
+
+data$BPXOSY1[missing_BPXOSY1] <- predicted_BPXOSY1 + BPXOSY1_noise
+
+# 3. Impute BPXOSY2 ()
+BPXOSY2_impute_model <- lm(BPXOSY2 ~ DR1TSODI + BPXOSY1 + BPXOSY3 + BPXODI1 + BPXODI2 + BPXODI3 + DR1TALCO,
+                         data = subset(data, !is.na(BPXOSY2)))
+
+missing_BPXOSY2 <- is.na(data$BPXOSY2)
+predicted_BPXOSY2 <- predict(BPXOSY2_impute_model, newdata = data[missing_BPXOSY2,])
+
+BPXOSY2_noise <- rnorm(n = length(predicted_BPXOSY2),
+                      mean = 0,
+                      sd = summary(BPXOSY2_impute_model)$sigma)
+
+data$BPXOSY2[missing_BPXOSY2] <- predicted_BPXOSY2 + BPXOSY2_noise
+
+# 4. Impute BPXOSY3 ()
+BPXOSY3_impute_model <- lm(BPXOSY3 ~ DR1TSODI + BPXOSY1 + BPXOSY2 + BPXODI1 + BPXODI2 + BPXODI3 + DR1TALCO,
+                         data = subset(data, !is.na(BPXOSY3)))
+
+missing_BPXOSY3 <- is.na(data$BPXOSY3)
+predicted_BPXOSY3 <- predict(BPXOSY3_impute_model, newdata = data[missing_BPXOSY3,])
+
+BPXOSY3_noise <- rnorm(n = length(predicted_BPXOSY3),
+                      mean = 0,
+                      sd = summary(BPXOSY3_impute_model)$sigma)
+
+data$BPXOSY3[missing_BPXOSY3] <- predicted_BPXOSY3 + BPXOSY3_noise
+
+
+# 5. Impute BPXODI1 ()
+BPXODI1_impute_model <- lm(BPXODI1 ~ DR1TSODI + BPXOSY1 + BPXOSY2 + BPXOSY3 + BPXODI2 + BPXODI3 + DR1TALCO,
+                         data = subset(data, !is.na(BPXODI1)))
+
+missing_BPXODI1 <- is.na(data$BPXODI1)
+predicted_BPXODI1 <- predict(BPXODI1_impute_model, newdata = data[missing_BPXODI1,])
+
+BPXODI1_noise <- rnorm(n = length(predicted_BPXODI1),
+                      mean = 0,
+                      sd = summary(BPXODI1_impute_model)$sigma)
+
+data$BPXODI1[missing_BPXODI1] <- predicted_BPXODI1 + BPXODI1_noise
+
+# 6. Impute BPXODI2 ()
+BPXODI2_impute_model <- lm(BPXODI2 ~ DR1TSODI + BPXOSY1 + BPXOSY2 + BPXOSY3 + BPXODI1 + BPXODI3 + DR1TALCO,
+                         data = subset(data, !is.na(BPXODI2)))
+
+missing_BPXODI2 <- is.na(data$BPXODI2)
+predicted_BPXODI2 <- predict(BPXODI2_impute_model, newdata = data[missing_BPXODI2,])
+
+BPXODI2_noise <- rnorm(n = length(predicted_BPXODI2),
+                      mean = 0,
+                      sd = summary(BPXODI2_impute_model)$sigma)
+
+data$BPXODI2[missing_BPXODI2] <- predicted_BPXODI2 + BPXODI2_noise
+
+
+# 7. Impute BPXODI3 ()
+BPXODI3_impute_model <- lm(BPXODI3 ~ DR1TSODI + BPXOSY1 + BPXOSY2 + BPXOSY3 + BPXODI1 + BPXODI2 + DR1TALCO,
+                         data = subset(data, !is.na(BPXODI3)))
+
+missing_BPXODI3 <- is.na(data$BPXODI3)
+predicted_BPXODI3 <- predict(BPXODI3_impute_model, newdata = data[missing_BPXODI3,])
+
+BPXODI3_noise <- rnorm(n = length(predicted_BPXODI3),
+                      mean = 0,
+                      sd = summary(BPXODI3_impute_model)$sigma)
+
+data$BPXODI3[missing_BPXODI3] <- predicted_BPXODI3 + BPXODI3_noise
+
+
+# 8. Impute DR1TALCO ()
+DR1TALCO_impute_model <- lm(DR1TALCO ~ DR1TSODI + BPXOSY1 + BPXOSY2 + BPXOSY3 + BPXODI1 + BPXODI2 + BPXODI3,
+                         data = subset(data, !is.na(DR1TALCO)))
+
+missing_DR1TALCO <- is.na(data$DR1TALCO)
+predicted_DR1TALCO <- predict(DR1TALCO_impute_model, newdata = data[missing_DR1TALCO,])
+
+DR1TALCO_noise <- rnorm(n = length(predicted_DR1TALCO),
+                      mean = 0,
+                      sd = summary(DR1TALCO_impute_model)$sigma)
+
+data$DR1TALCO[missing_DR1TALCO] <- predicted_DR1TALCO + DR1TALCO_noise
+
+# Verify no missing values remain
+colSums(is.na(data))
+```
+
+```{r, results='hide'}
+# take the mean of the three blood pressure measurements (both systolic and diastolic)
+data$BPXOSY <- rowMeans(data[, c("BPXOSY1", "BPXOSY2", "BPXOSY3")], na.rm = TRUE)
+data$BPXODI <- rowMeans(data[, c("BPXODI1", "BPXODI2", "BPXODI3")], na.rm = TRUE)
+# select columns of interest for the first research question
+data <- data %>%
+  dplyr::select(SEQN, RIAGENDR, RIDAGEYR, RIDRETH3, DR1TSODI, BPXOSY, BPXODI, DR1TALCO)
+# Renaming columns
+colnames(data) <- c("Sequence_no", "Gender", "Age", "Race", "Sodium_intake", "Systolic_BP", "Diastolic_BP", "Alcohol_consumption")
+glimpse(data)
+```
+
+```{r, results='hide'}
+data$BP_category <- with(data, 
+  ifelse(Systolic_BP < 120 & Diastolic_BP < 80, "Normal",
+  ifelse(Systolic_BP >= 120 & Systolic_BP <= 129 & Diastolic_BP < 80, "Elevated",
+  ifelse((Systolic_BP >= 130 & Systolic_BP <= 139) | (Diastolic_BP >= 80 & Diastolic_BP <= 89), "Stage 1 Hypertension",
+  ifelse(Systolic_BP >= 140 | Diastolic_BP >= 90, "Stage 2 Hypertension", NA))))
+)
+```
+
+### Model Fitting and Evaluation
+
+Initially, separate ordinal regression models were fitted to examine the relationship between blood pressure categories and each variable of interest individually. This approach allowed us to explore the individual associations of sodium intake, gender, and race with blood pressure categories before incorporating all variables into a comprehensive model. Covariates such as age, gender, race, and alcohol consumption were included in the combined model to adjust for potential confounders.
+
+Interaction terms were introduced to investigate whether the effect of sodium intake on blood pressure categories varied by gender or race. The same procedure was applied when fitting a multinomial regression model to examine these relationships. Model comparisons were performed using the Akaike Information Criterion (AIC), which was appropriate for assessing the relative quality of nested models due to its ability to balance model fit and complexity.
+
+Additionally, a random forest model was fitted to the data as a non-linear, non-parametric approach to explore variable importance and potentially improve predictive accuracy. This step provided a complementary perspective to the regression models, particularly in identifying complex interactions or non-linear relationships that may not be captured by the regression models.
+
+A multiple linear regression (MLR) model was used for modeling blood mercury levels. Residual vs fitted plot was used to test linearity and homoscedasticity. R-squared was used to evaluate the performance of the linear regression model.
+
+Variance Inflation Factors (VIFs) were calculated to detect multicollinearity among predictors. Variables with high VIFs were considered for removal or transformation. The proportional odds assumption for ordinal logistic regression was checked using graphical methods and the Brant test. Model fit was evaluated using AIC and deviance. A confusion matrix was used to evaluate the performance of the multinomial regression model. All statistical analyses and modeling were done using R programming language.
+
+## Results
+
+### Research Question 1: Contributing Factors of Blood Pressure Category
+
+##### Distribution of sodium intake, blood pressure categories
+
+```{r}
+data$Race <- as.factor(data$Race)
+data$Race <- droplevels(data$Race)
+
+# Distribution of Sodium Intake (Boxplot)
+ggplot(data, aes(x = "", y = Sodium_intake)) +
+  geom_boxplot(fill = "skyblue", color = "darkblue") +
+  labs(title = "Distribution of Sodium Intake", x = "Sodium", y = "Sodium Intake (mg)") +
+  theme_minimal()
+
+# Distribution of Blood Pressure Categories (Bar chart)
+ggplot(data, aes(x = BP_category)) +
+  geom_bar(fill = "lightgreen", color = "darkgreen") +
+  labs(title = "Distribution of Blood Pressure Categories", x = "BP Category", y = "Count") +
+  theme_minimal()
+
+# # Distribution of Gender (Bar chart)
+# ggplot(data, aes(x = Gender)) +
+#   geom_bar(fill = "lightpink", color = "darkred") +
+#   labs(title = "Distribution of Gender", x = "Gender", y = "Count") +
+#   theme_minimal()
+# 
+# # Distribution of Race (Bar chart)
+# ggplot(data, aes(x = Race)) +
+#   geom_bar(fill = "lightblue", color = "darkblue") +
+#   labs(title = "Distribution of Race", x = "Race", y = "Count") +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+#   theme_minimal()
+
+```
+
+##### Correlation Analysis: Sodium intake and Blood Pressure Category
+
+```{r}
+# Assign numerical values to BP_category for correlation analysis
+data$BP_category_num <- as.numeric(data$BP_category)
+
+# Calculate Spearman correlation (appropriate for ordinal variables)
+correlation <- cor(data$Sodium_intake, data$BP_category_num, method = "spearman")
+cat("Spearman Correlation between Sodium Intake and BP Category:", correlation, "\n")
+
+# Visualize relationship between Sodium Intake and BP Category
+ggplot(data, aes(x = BP_category, y = Sodium_intake)) +
+  geom_boxplot(fill = "orange", color = "darkorange") +
+  labs(title = "Sodium Intake by Blood Pressure Category", x = "BP Category", y = "Sodium Intake (mg)") +
+  theme_minimal()
+
+```
+
+```{r, results='hide'}
+# Remove outliers
+data <- data %>% filter(data$Sodium_intake < 15000)
+max(data$Sodium_intake)
+
+# Ensure BP_category is an ordered factor
+data$BP_category <- factor(data$BP_category, 
+                         levels = c("Normal", "Elevated", "Stage 1 Hypertension", "Stage 2 Hypertension"), 
+                         ordered = TRUE)
+
+# Fit the ordinal logistic regression model
+basic_model <- polr(BP_category ~ Sodium_intake, data = data, Hess = TRUE)
+
+# Check the model summary
+summary(basic_model)
+Anova(basic_model)
+
+# Odds ratios and confidence intervals
+exp_coef <- exp(coef(basic_model)) # Odds ratios
+ci <- exp(confint(basic_model))    # Confidence intervals
+odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
+
+# Display results
+print(odds_ratios)
+```
+
+```{r, results='hide'}
+coefficients_table <- coef(summary(basic_model))
+p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
+
+coefficients_table <- cbind(coefficients_table, "p value" = p_values)
+
+coefficients_table
+```
+
+```{r, results='hide'}
+brant_test <- brant(basic_model)
+print(brant_test)
+```
+
+```{r, results='hide'}
+# Convert categorical variables to factors
+data$Gender <- factor(data$Gender, levels = c(1, 2), labels = c("Male", "Female"))
+# Adjusted model (adding gender)
+adjusted_model1 <- polr(BP_category ~ Gender, data = data, Hess = TRUE)
+summary(adjusted_model1)
+
+Anova(adjusted_model1)
+# Odds ratios and confidence intervals
+exp_coef <- exp(coef(adjusted_model1)) # Odds ratios
+ci <- exp(confint(adjusted_model1))    # Confidence intervals
+odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
+
+# Display results
+print(odds_ratios)
+```
+
+```{r, results='hide'}
+coefficients_table <- coef(summary(adjusted_model1))
+p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
+
+coefficients_table <- cbind(coefficients_table, "p value" = p_values)
+
+coefficients_table
+```
+
+```{r, results='hide'}
+brant_test <- brant(adjusted_model1)
+print(brant_test)
+```
+
+```{r, results='hide'}
+# Convert categorical variables to factors
+data$Race <- factor(data$Race, 
+                  levels = c(1, 2, 3, 4, 6, 7),
+                  labels = c("Mexican American", "Other Hispanic", "Non-Hispanic White", 
+                             "Non-Hispanic Black", "Non-Hispanic Asian", "Multiracial"))
+# Adjusted model (adding race)
+adjusted_model2 <- polr(BP_category ~ Race, data = data, Hess = TRUE)
+summary(adjusted_model2)
+
+Anova(adjusted_model2)
+# Odds ratios and confidence intervals
+exp_coef <- exp(coef(adjusted_model2)) # Odds ratios
+ci <- exp(confint(adjusted_model2))    # Confidence intervals
+odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
+
+# Display results
+print(odds_ratios)
+```
+
+```{r, results='hide'}
+coefficients_table <- coef(summary(adjusted_model2))
+p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
+
+coefficients_table <- cbind(coefficients_table, "p value" = p_values)
+
+coefficients_table
+```
+
+```{r, results='hide'}
+# Adjusted model (adding age)
+adjusted_model3 <- polr(BP_category ~ Age, data = data, Hess = TRUE)
+summary(adjusted_model3)
+
+Anova(adjusted_model3)
+# Odds ratios and confidence intervals
+exp_coef <- exp(coef(adjusted_model3)) # Odds ratios
+ci <- exp(confint(adjusted_model3))    # Confidence intervals
+odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
+
+# Display results
+print(odds_ratios)
+```
+
+```{r, results='hide'}
+coefficients_table <- coef(summary(adjusted_model3))
+p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
+
+coefficients_table <- cbind(coefficients_table, "p value" = p_values)
+
+coefficients_table
+```
+
+```{r, results='hide'}
+brant_test <- brant(adjusted_model3)
+print(brant_test)
+```
+
+```{r, results='hide'}
+ggplot(data, aes(x = Age, y = as.numeric(BP_category))) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  labs(title = "Age vs. BP Category", x = "Age", y = "BP Category")
+```
+
+```{r, results='hide'}
+multi_model1 <- polr(factor(BP_category) ~ Sodium_intake + Gender, data = data, Hess = TRUE)
+summary(multi_model1)
+
+Anova(multi_model1)
+# Odds ratios and confidence intervals
+exp_coef <- exp(coef(multi_model1)) # Odds ratios
+ci <- exp(confint(multi_model1))    # Confidence intervals
+odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
+
+# Display results
+print(odds_ratios)
+
+```
+
+```{r, results='hide'}
+multi_model2 <- polr(factor(BP_category) ~ Sodium_intake + Race, data = data, Hess = TRUE)
+summary(multi_model2)
+
+Anova(multi_model2)
+# Odds ratios and confidence intervals
+exp_coef <- exp(coef(multi_model2)) # Odds ratios
+ci <- exp(confint(multi_model2))    # Confidence intervals
+odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
+
+# Display results
+print(odds_ratios)
+```
+
+```{r, results='hide'}
+coefficients_table <- coef(summary(multi_model2))
+p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
+
+coefficients_table <- cbind(coefficients_table, "p value" = p_values)
+
+coefficients_table
+```
+
+```{r, results='hide'}
+multi_model3 <- polr(factor(BP_category) ~ Sodium_intake + Age, data = data, Hess = TRUE)
+summary(multi_model3)
+
+Anova(multi_model3)
+# Odds ratios and confidence intervals
+exp_coef <- exp(coef(multi_model3)) # Odds ratios
+ci <- exp(confint(multi_model3))    # Confidence intervals
+odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
+
+# Display results
+print(odds_ratios)
+coefficients_table <- coef(summary(multi_model3))
+p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
+
+coefficients_table <- cbind(coefficients_table, "p value" = p_values)
+
+coefficients_table
+```
+
+```{r, results='hide'}
+multi_model4 <- polr(factor(BP_category) ~ Sodium_intake + Gender + Race + Age, data = data, Hess = TRUE)
+summary(multi_model4)
+
+Anova(multi_model4)
+# Odds ratios and confidence intervals
+exp_coef <- exp(coef(multi_model4)) # Odds ratios
+ci <- exp(confint(multi_model4))    # Confidence intervals
+odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
+
+# Display results
+print(odds_ratios)
+
+coefficients_table <- coef(summary(multi_model3))
+p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
+
+coefficients_table <- cbind(coefficients_table, "p value" = p_values)
+
+coefficients_table
+```
+
+```{r, results='hide'}
+# Fit the multinomial logistic regression model
+multinom_model <- multinom(factor(BP_category) ~ Sodium_intake + Age + Gender + Race + Alcohol_consumption, data = data)
+
+# Summary of the model
+summary(multinom_model)
+
+# Extracting p-values
+z_values <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
+p_values <- 2 * (1 - pnorm(abs(z_values)))
+print(p_values)
+
+# Predict probabilities for the dataset
+predicted_probs <- predict(multinom_model, newdata = data, type = "probs")
+
+# Predict the category
+predicted_categories <- predict(multinom_model, newdata = data)
+
+# Evaluate the model
+# Confusion Matrix
+table(Predicted = predicted_categories, Actual = data$BP_category)
+
+# Print model diagnostics
+cat("Model Coefficients:\n")
+print(summary(multinom_model)$coefficients)
+
+cat("\nPredicted Categories:\n")
+head(predicted_categories)
+
+cat("\nPredicted Probabilities:\n")
+head(predicted_probs)
+```
+
+```{r, results='hide'}
+# Fit the multinomial logistic regression model with interaction terms
+multinom_model <- multinom(BP_category ~ Sodium_intake*Gender + Sodium_intake*Race + Age + Gender + Race + Alcohol_consumption, data = data)
+
+# Summary of the model
+summary(multinom_model)
+
+# Extracting p-values
+z_values <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
+p_values <- 2 * (1 - pnorm(abs(z_values)))
+print(p_values)
+
+# Predict probabilities for the dataset
+predicted_probs <- predict(multinom_model, newdata = data, type = "probs")
+
+# Predict the category
+predicted_categories <- predict(multinom_model, newdata = data)
+
+# Evaluate the model
+# Confusion Matrix
+table(Predicted = predicted_categories, Actual = data$BP_category)
+
+# Print model diagnostics
+cat("Model Coefficients:\n")
+print(summary(multinom_model)$coefficients)
+
+cat("\nPredicted Categories:\n")
+head(predicted_categories)
+
+cat("\nPredicted Probabilities:\n")
+head(predicted_probs)
+```
+
+The model's AIC of 12037.52 reflects a balance between complexity and fit. The confusion matrix shows the highest accuracy in predicting the "Normal" category but some misclassifications among hypertensive stages.
+The multinomial regression model revealed key associations between blood pressure categories and predictor variables. For "Elevated," the coefficient for sodium intake is negative (-0.000039), suggesting that increased sodium intake may be associated with reduced odds of being in this category compared to "Normal," though the effect size is very small. For "Stage 1" and "Stage 2 Hypertension," the coefficients are positive but small, indicating a slight increase in the odds of being in these categories with increased sodium intake. Age and alcohol consumption were positively associated with higher blood pressure categories, while gender and race demonstrated significant variation; for instance, females had lower odds of elevated and hypertensive categories, and "Non-Hispanic Black" was associated with higher odds of "Stage 1" and "Stage 2 Hypertension." Interaction terms highlighted nuanced relationships, such as weaker sodium intake effects for females but varying effects across racial groups. Predicted probabilities provided insights into classification confidence, with age and alcohol consistently influencing outcomes. While the model converged successfully, the modest effect sizes for some predictors and potential for further refinement suggest opportunities for further investigation.
+
+### Research Question 2: Contributing Factors of Blood Mercury Level
+
+The primary research question investigates the relationship between drinking water sources and blood mercury levels, while considering demographic factors. Specifically, we examined how tap water and bottled water consumption patterns influence blood mercury concentrations, and how these relationships might vary across different demographic groups. This investigation is particularly relevant given the growing public health concerns about environmental toxin exposure through different water sources.
+
+Our statistical approach employed multiple linear regression with log-transformed mercury levels as the dependent variable, addressing both the non-normal distribution of mercury concentrations and the presence of detection limits in the measurements. The model incorporated water consumption variables (tap and bottled water intake), demographic characteristics (race, gender, age), and socioeconomic status (income-to-poverty ratio), along with key interaction terms to capture the complex relationships between these factors.
+
+```{r data-2, warning=FALSE}
+
+# Load datasets
+dr1tot <- read_xpt("/Users/danishmak/Documents/Original Files/DR1TOT_L.XPT")
+bpxo   <- read_xpt("/Users/danishmak/Documents/Original Files/BPXO_L.XPT")
+demo   <- read_xpt("/Users/danishmak/Documents/Original Files/DEMO_L.XPT")
+pbcd   <- read_xpt("/Users/danishmak/Documents/Original Files/PBCD_L.XPT")
+
+# Merge datasets on sequence number (SEQN)
+data_merged <- demo %>%
+  inner_join(bpxo, by = "SEQN") %>%
+  inner_join(dr1tot, by = "SEQN") %>%
+  inner_join(pbcd, by = "SEQN")
+
+data <- dplyr::select(
+  data_merged,
+  SEQN, BPXOSY1, BPXODI1, RIDRETH3, RIAGENDR, RIDAGEYR, INDFMPIR, DR1_330Z, DR1_320Z, DR1BWATZ, 
+  LBXTHG, LBDBPBSI, LBXBSE, DR1TSODI, DRD340, 
+  starts_with("DRD350"), 
+  starts_with("DRD370")
+)
+
+
+# Filter data for valid non-missing values
+
+data$BloodPressureCategory <- cut(data$BPXOSY1, breaks = 
+                                c(0, 50, 60, 90, 120, 129, 139, 140, 180, Inf),
+      labels = c("Dange. Low", "Very Low", "Low", "Normal", "Elevated", 
+             "HyperT Stg 1",  "HyperT Stg 2", "HyperT Crisis", "HyperT Crisis"))
+
+# Create Gender variable
+data$Gender <- factor(data$RIAGENDR, labels = c("Male", "Female"))
+
+# Add a hypertension status column
+data$Hypertensive <- ifelse(data$BPXOSY1 > 140 | data$BPXODI1 > 90, "Yes", "No")
+data$Hypertensive <- as.factor(data$Hypertensive)
+
+```
+#### EDA
+
+```{r plots-2b, echo=FALSE}
+# Mecury levels
+# Filter relevant columns
+filtered_data <- data %>%
+  dplyr::select(SEQN, DR1_330Z, DR1_320Z, DR1BWATZ, LBXTHG) %>%
+  filter(!is.na(DR1_330Z), !is.na(DR1_320Z), !is.na(DR1BWATZ), !is.na(LBXTHG),
+         LBXTHG < 40, LBXTHG > 6e-79)
+
+# Reshape data
+long_data <- filtered_data %>%
+  pivot_longer(
+    cols = c(DR1_330Z, DR1_320Z, DR1BWATZ),
+    names_to = "Variable",
+    values_to = "Value"
+  ) |>
+  mutate(
+    Variable = factor(Variable, levels = c("DR1_330Z", "DR1BWATZ", "DR1_320Z"), 
+              labels = c("Tap Water", "Bottled Water", "Combined Plain Water"))
+  )
+
+# Create faceted scatter plot
+plot2b1 <- ggplot(long_data, aes(x = Value, y = LBXTHG)) +
+  geom_point(alpha = 0.5, color = "blue") +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  facet_wrap(~ Variable, scales = "free_x", ncol = 2) +
+  labs(
+    title = "Effect of kinds of water consumed on Mercury Levels",
+    x = "Water Intake (gm)",
+    y = "Mercury Level (µg/L)"
+  ) +
+  theme_minimal()
+
+plot2b2 <- ggplot(filtered_data, aes(x = LBXTHG)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(
+    title = "Distribution of Mercury Levels",
+    x = "Mercury Level (µg/L)",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+print(plot2b1)
+# print(plot2b2)
+```
+
+1.  **Mercury Levels vs. Water Consumption** The faceted scatter plot examined the relationships between mercury levels and water intake across three types of water consumption (tap water, bottled water, and combined plain water). Linear trend lines showed that higher consumption of tap water might led to a slighly increase in blood mercury levels in people versus bottled water which had a no change in blood mecury levels as more is consumed.
+
+```{r plots-3b, echo=FALSE}
+# Filter relevant columns, including the updated race variable RIDRETH3
+filtered_data <- data %>%
+  dplyr::select(SEQN, DR1_330Z, DR1_320Z, DR1BWATZ, LBXTHG, RIDRETH3) %>%
+  filter(!is.na(DR1_330Z), !is.na(DR1_320Z), !is.na(DR1BWATZ), 
+         !is.na(LBXTHG), !is.na(RIDRETH3),
+         LBXTHG < 40, LBXTHG > 6e-79)
+
+# Map `RIDRETH3` to descriptive race labels
+filtered_data <- filtered_data %>%
+  mutate(
+    Race = factor(RIDRETH3, levels = c(1, 2, 3, 4, 6, 7),
+                  labels = c("Mexican American", "Other Hispanic", 
+                             "Non-Hispanic White", "Non-Hispanic Black", 
+                             "Non-Hispanic Asian", "Other Race - Including Multi-Racial"))
+  )
+
+# Create a boxplot to show mercury levels by race
+plot_race <- ggplot(filtered_data, aes(x = Race, y = LBXTHG)) +
+  geom_boxplot(fill = "skyblue", color = "black", outlier.color = "red", outlier.shape = 16) +
+  labs(
+    title = "Mercury Levels by Race/Ethnicity (Using RIDRETH3)",
+    x = "Race/Ethnicity",
+    y = "Mercury Level (µg/L)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Create a violin plot for further visualization
+plot_violin <- ggplot(filtered_data, aes(x = Race, y = LBXTHG, fill = Race)) +
+  geom_violin(trim = TRUE, alpha = 0.7) +
+  geom_jitter(shape = 16, color = "black", size = 0.5, alpha = 0.5) +
+  labs(
+    title = "Distribution of Mercury Levels by Race/Ethnicity",
+    x = "Race/Ethnicity",
+    y = "Mercury Level (µg/L)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Print the plots
+#print(plot_race)
+print(plot_violin)
+
+
+```
+
+2.  **Mercury Levels by Race/Ethnicity** The violin plot was used to compare mercury distributions across racial/ethnic groups.
+This graph shows that mercury levels vary significantly across racial and ethnic groups, with Non-Hispanic Asians having the highest levels and the widest distribution. We can see that most distribution are right-skewed meaning that most individuals in all racial cateogries have low mercury levels, but there are noticeable outliers, especially among Non-Hispanic Asians and Non-Hispanic Blacks. 
+
+```{r,include=FALSE}
+# Pick only the columns of interest
+data <- data_merged %>%
+  dplyr::select(SEQN, RIAGENDR, RIDAGEYR, DR1_330Z, DR1_320Z, DR1BWATZ, 
+         LBXTHG, RIDRETH3, INDFMPIR)
+
+# data <- data %>%
+#   filter(!is.na(SEQN),  !is.na(RIAGENDR), !is.na(RIDAGEYR),  !is.na(DR1_330Z), 
+#          !is.na(DR1_320Z), !is.na(DR1BWATZ), !is.na(LBXTHG),
+#          !is.na(RIDRETH3),!is.na(INDFMPIR))
+
+data <- data %>%
+  mutate(
+    Race = factor(RIDRETH3, levels = c(1, 2, 3, 4, 6, 7),
+                 labels = c("Mexican American", "Other Hispanic", 
+                          "Non-Hispanic White", "Non-Hispanic Black", 
+                          "Non-Hispanic Asian", "Other Race - Including Multi-Racial")),
+    Gender = factor(RIAGENDR, levels = c(1, 2),
+                   labels = c("Male", "Female")),
+    Water_Type = case_when(
+      DR1_330Z > 0 & DR1BWATZ > 0 ~ "Both",
+      DR1_330Z > 0 & DR1BWATZ == 0 ~ "Tap Water",
+      DR1_330Z == 0 & DR1BWATZ > 0 ~ "Bottled Water",
+      TRUE ~ "None"
+    ),
+    Water_Type = factor(Water_Type, levels = c("Tap Water", "Bottled Water", "Both", "None"))
+  )
+```
+
+```{r,include=FALSE}
+# Stochastic regression imputations for missing values:
+# 1. Impute tap water (DR1_330Z)
+tap_water_model <- lm(DR1_330Z ~ Race + Gender + RIDAGEYR, 
+                     data = subset(data, !is.na(DR1_330Z)))
+missing_tap <- is.na(data$DR1_330Z)
+predicted_tap <- predict(tap_water_model, newdata = data[missing_tap,])
+set.seed(123)
+tap_noise <- rnorm(n = length(predicted_tap), 
+                  mean = 0, 
+                  sd = summary(tap_water_model)$sigma)
+data$DR1_330Z[missing_tap] <- predicted_tap + tap_noise
+
+# 2. Impute bottled water (DR1BWATZ)
+bottled_water_model <- lm(DR1BWATZ ~ DR1_330Z + Race + Gender + RIDAGEYR, 
+                         data = subset(data, !is.na(DR1BWATZ)))
+missing_bottled <- is.na(data$DR1BWATZ)
+predicted_bottled <- predict(bottled_water_model, newdata = data[missing_bottled,])
+bottled_noise <- rnorm(n = length(predicted_bottled), 
+                      mean = 0, 
+                      sd = summary(bottled_water_model)$sigma)
+data$DR1BWATZ[missing_bottled] <- predicted_bottled + bottled_noise
+
+# 3. Impute INDFMPIR
+income_model <- lm(INDFMPIR ~ DR1_330Z + DR1BWATZ + Race + Gender + RIDAGEYR, 
+                  data = subset(data, !is.na(INDFMPIR)))
+missing_income <- is.na(data$INDFMPIR)
+predicted_income <- predict(income_model, newdata = data[missing_income,])
+income_noise <- rnorm(n = length(predicted_income), 
+                     mean = 0, 
+                     sd = summary(income_model)$sigma)
+data$INDFMPIR[missing_income] <- predicted_income + income_noise
+
+# 4. Impute LBXTHG
+mercury_model <- lm(LBXTHG ~ DR1_330Z + DR1BWATZ + Race + Gender + RIDAGEYR + INDFMPIR, 
+                   data = subset(data, !is.na(LBXTHG)))
+missing_mercury <- is.na(data$LBXTHG)
+predicted_mercury <- predict(mercury_model, newdata = data[missing_mercury,])
+mercury_noise <- rnorm(n = length(predicted_mercury), 
+                      mean = 0, 
+                      sd = summary(mercury_model)$sigma)
+data$LBXTHG[missing_mercury] <- predicted_mercury + mercury_noise
+
+# Make sure all imputed values for LBXTHG are positive (since we'll take the log)
+data$LBXTHG[data$LBXTHG <= 0] <- min(data$LBXTHG[data$LBXTHG > 0], na.rm = TRUE)
+
+# Calculate log_LBXTHG after imputation
+data$log_LBXTHG <- log(data$LBXTHG)
+
+# Verify no missing values remain
+colSums(is.na(data))
+```
+
+```{r,include=FALSE}
+data$log_LBXTHG <- log(data$LBXTHG)
+
+model_updated <- lm(log_LBXTHG ~ DR1_330Z + DR1BWATZ + Race*INDFMPIR + 
+                   Gender + RIDAGEYR, 
+                   data = data)
+
+coef_table <- summary(model_updated)$coefficients
+ci <- confint(model_updated)
+
+characteristic <- c("Intercept",
+                   "Tap Water Intake",
+                   "Bottled Water Intake",
+                   "Race: Other Hispanic",
+                   "Race: Non-Hispanic White",
+                   "Race: Non-Hispanic Black",
+                   "Race: Non-Hispanic Asian",
+                   "Race: Other/Multi-Racial",
+                   "Income-to-Poverty Ratio",
+                   "Gender: Female",
+                   "Age (years)",
+                   "Other Hispanic × Income",
+                   "Non-Hispanic White × Income",
+                   "Non-Hispanic Black × Income",
+                   "Non-Hispanic Asian × Income",
+                   "Other/Multi-Racial × Income")
+
+beta <- sprintf("%.3f", coef_table[,1])
+se <- sprintf("%.3f", coef_table[,2])
+ci_values <- sprintf("%.3f, %.3f", ci[,1], ci[,2])
+p_values <- ifelse(coef_table[,4] < 0.001, "< 0.001", sprintf("%.3f", coef_table[,4]))
+
+# Combine into a matrix
+results_matrix <- cbind(characteristic, beta, se, ci_values, p_values)
+colnames(results_matrix) <- c("Predictor Variables", "Beta", "SE", "95% CI", "P-value")
+
+# Create table
+kable(results_matrix,
+      align = c('l', 'c', 'c', 'c', 'c'),
+      row.names = FALSE)
+
+```
+
+```{r, include=FALSE}
+summary(model_updated)
+```
+
+The multiple linear regression model examines factors affecting blood mercury levels. Since the blood mercury level has a right-skewed distribution with a long right tail, we log-transformed the dependent variable for better model fit. The model is statistically significant (F-statistic = 81.04, p \< 0.001) and explains 13.51% of the variance in blood mercury levels with an R-squared of 0.1351. The model's low R-squared value is primarily because of two major reasons: (1) There are outstanding outliers of blood mercury levels, but our model's predictor variables on demographics and water drinking types are unlikely to be the key reasons that cause these extremely high mercury levels. The key reason that could lead to extremely high levels could be environmental factors, such as pollution. (2) For the mercury exam results, there is lower detection limit. When the actual mercury level is less than this detection limit of 0.21 µg/L, the variable would be recorded as 0.12, which is actual detection limit divided by the square root of 2. This creates a large cluster of identical values and true values below detection limit are unknown, which makes it harder for the model to explain variation that's artificially removed.
+
+The model summary output shows that tap water intakes has a significant positive association with p-value less than 0.001, whereas bottled water intake has no significant effect (with p-value of 0.133). For the variable of race, compared to the reference level of Mexican Americans, non-Hispanic Asians show substantially higher mercury levels, non-Hispanic Whites show lower levels, other Hispanics show higher levels, and non-Hispanic Blacks and other races show no significant differences. For demographic factors, both age and income level have positive association with mercury levels (with p-value \< 0.001). Holding all other variables constant, females have lower mercury levels on average than males. For interaction term between race and income level, the positive interaction means the effect of income on mercury levels is stronger for non-Hispanic Whites compared to Mexican Americans. The negative interaction indicates that the effect of income on mercury levels is weaker for non-Hispanic Asians compared to Mexican Americans.
+
+We also evaluated the residual plots of the model. For the residual plot, there is a straight line in the middle, which is caused by the detection limit of mercury level. For the Q-Q plot, the points follow the diagonal line closely, suggesting good normality in the central part of the distribution. However, there are some deviations in both tails, which are likely due to the outliers in the mercury level.
+
+```{r, include=FALSE}
+
+plot(model_updated)
+
+```
+
+## Conclusion
+
+This report sheds light on some of the key factors influencing blood pressure and mercury levels in the U.S. population. While we didn’t find a significant link between dietary sodium intake and blood pressure, age stood out as a major predictor of hypertension. This suggests that efforts to prevent high blood pressure should focus more on age-related risk factors. When it comes to mercury exposure, tap water consumption, race, and income emerged as important contributors. Non-Hispanic Asian populations showed significantly higher mercury levels, which raises questions about whether dietary factors cause this or if there is influence from other relationships. To test this we created a model to determine the strength of factors on mercury levels in individuals. The complex relationship between race and income also suggests that environmental exposure risks are not evenly distributed, pointing to areas where public health policies could make a big difference. Overall, these findings suggest a more tailored approach to public health—one that considers individual and community-level differences in exposure and risk. By combining insights from diet, environment, and demographics, we can create more effective strategies to reduce hypertension and mercury toxicity in vulnerable populations.
+
+This study does have some limitations, like the possibility of unmeasured factors and the reliance on observational data, which makes it harder to draw clear cause-and-effect conclusions. Future research could benefit from using long-term data and more gradular studies to better understand how individual and enviornmental factors drive disparities in mercury exposure and hypertension. 
+
+## References
+
+Centers for Disease Control and Prevention. (2023). High blood pressure facts and statistics. <https://www.cdc.gov/highbloodpressure/data-research/facts-stats/index.html>
+
+Houston, Michael C. "The Role of Mercury in Cardiovascular Disease." Journal of Clinical Hypertension, vol. 13, no. 8, 2011, pp. 621–627, https://doi.org/10.1111/j.1751-7176.2011.00489.x.
+
+World Health Organization. "Hypertension." WHO, 2023, https://www.who.int/news-room/fact-sheets/detail/hypertension.
+
+World Health Organization. (2021). Sodium intake and cardiovascular health. <https://www.who.int/news-room/fact-sheets/detail/sodium-intake-for-adults-and-children>
+
+Agency for Toxic Substances and Disease Registry. (2023). Mercury and health. <https://www.atsdr.cdc.gov/toxprofiles/tp46.pdf>
+
+## Appendix
