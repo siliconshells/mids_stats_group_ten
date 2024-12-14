@@ -32,14 +32,13 @@ library(caret)
 library(modelsummary)
 library(knitr)
 library(kableExtra)
-
+library(skimr)
 
 ```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 ```
-
 
 ## Abstract
 
@@ -83,7 +82,7 @@ print(colSums(is.na(data_q1_3_measures)))
 ```
 
 | Blood Pressure Category | Systolic Blood Pressure | Diastolic Blood Pressure |
-|-------------------------|-------------------------|--------------------------|
+|------------------------|------------------------|-------------------------|
 | Normal                  | \<120 mmHg              | and \<80 mmHg            |
 | Elevated                | 120-129 mmHg            | and \<80 mmHg            |
 | Stage 1 Hypertension    | 130-139 mmHg            | or 80-89 mmHg            |
@@ -94,8 +93,6 @@ The systolic and diastolic blood measurements used in this analysis represent th
 For the second research question on blood mercury level, the data has 7785 observations, among which 2870 observations have missing values in either predictor or outcome variables. This dataset has missing values in variables of mercury level, income level, and water intakes of bottled water and tap water.
 
 Stochastic regression imputations were used to handle missing values because (1) dataset size is large enough to build reliable imputation models; (2) missing values appear in both predictors and outcome; (3) maintains the natural associations in the data; (4) better than median or mean imputations, which are more arbitrary and underestimate variance. Extreme outliers in sodium intake and alcohol consumption were identified using visualizations (boxplots) and summary statistics. Sensitivity analyses were planned to evaluate the impact of including these points. Descriptive statistics (mean, median, range) and visualizations (histograms and boxplots) were used to summarize continuous variables. Bar charts and frequency tables were used to explore the distribution of categorical variables. Relationships between sodium intake and blood pressure levels were explored using boxplots and correlation analyses. Associations between other predictors (e.g., gender, age, race) and blood pressure categories were examined.
-
-
 
 ```{r, results='hide'}
 # take the mean of the three blood pressure measurements (both systolic and diastolic)
@@ -110,7 +107,6 @@ colnames(data_q1_3_measures) <- c("Sequence_no", "Gender", "Age", "Race", "Sodiu
 print(colSums(is.na(data_q1_3_measures)))
 ```
 
-
 ```{r, results='hide'}
 data_q1 <- data.frame(data_q1_3_measures)
 
@@ -120,7 +116,7 @@ data_for_model <- data_q1_3_measures %>%
   filter(!is.na(Sodium_intake), !is.na(Systolic_BP), !is.na(Diastolic_BP))
 
 # Build the linear model
-Sodium_intake_impute_model <- lm(Sodium_intake ~ Systolic_BP + Diastolic_BP, data = data_for_model)
+Sodium_intake_impute_model <- lm(Sodium_intake ~ Systolic_BP + Diastolic_BP + Age, data = data_for_model)
 
 # Identify rows where Sodium_intake is missing
 missing_Sodium_intake <- is.na(data_q1_3_measures$Sodium_intake)
@@ -142,7 +138,7 @@ data_for_model <- data_q1 %>%
   filter(!is.na(Sodium_intake), !is.na(Systolic_BP), !is.na(Alcohol_consumption))
 
 # Build the linear model
-Systolic_BP_impute_model <- lm(Systolic_BP ~ Sodium_intake + Alcohol_consumption, data = data_for_model)
+Systolic_BP_impute_model <- lm(Systolic_BP ~ Sodium_intake + Alcohol_consumption + Age, data = data_for_model)
 
 # Identify rows where Systolic_BP is missing
 missing_Systolic_BP <- is.na(data_q1$Systolic_BP)
@@ -163,7 +159,7 @@ data_for_model <- data_q1 %>%
   filter(!is.na(Sodium_intake), !is.na(Diastolic_BP), !is.na(Alcohol_consumption))
 
 # Build the linear model
-Diastolic_BP_impute_model <- lm(Diastolic_BP ~ Sodium_intake + Alcohol_consumption, data = data_for_model)
+Diastolic_BP_impute_model <- lm(Diastolic_BP ~ Sodium_intake + Alcohol_consumption + Age, data = data_for_model)
 
 # Identify rows where Diastolic_BP is missing
 missing_Diastolic_BP <- is.na(data_q1$Diastolic_BP)
@@ -184,7 +180,7 @@ data_for_model <- data_q1_3_measures %>%
   filter(!is.na(Alcohol_consumption), !is.na(Systolic_BP), !is.na(Diastolic_BP))
 
 # Build the linear model
-Alcohol_consumption_impute_model <- lm(Alcohol_consumption ~ Systolic_BP + Diastolic_BP, data = data_for_model)
+Alcohol_consumption_impute_model <- lm(Alcohol_consumption ~ Systolic_BP + Diastolic_BP + Age, data = data_for_model)
 
 # Identify rows where Alcohol_consumption is missing
 missing_Alcohol_consumption <- is.na(data_q1_3_measures$Alcohol_consumption)
@@ -203,14 +199,30 @@ data_q1$Alcohol_consumption[missing_Alcohol_consumption] <- predicted_Alcohol_co
 colSums(is.na(data_q1))
 ```
 
-
 ```{r, results='hide'}
-data_q1$BP_category <- with(data_q1, 
-  ifelse(Systolic_BP < 120 & Diastolic_BP < 80, "Normal",
-  ifelse(Systolic_BP >= 120 & Systolic_BP <= 129 & Diastolic_BP < 80, "Elevated",
-  ifelse((Systolic_BP >= 130 & Systolic_BP <= 139) | (Diastolic_BP >= 80 & Diastolic_BP <= 89), "Stage 1 Hypertension",
-  ifelse(Systolic_BP >= 140 | Diastolic_BP >= 90, "Stage 2 Hypertension", NA))))
-)
+# data_q1$BP_category <- with(data_q1, 
+#   ifelse(Systolic_BP < 120 & Diastolic_BP < 80, "Normal",
+#   ifelse(Systolic_BP >= 120 & Systolic_BP <= 129 & Diastolic_BP < 80, "Elevated",
+#   ifelse((Systolic_BP >= 130 & Systolic_BP <= 139) | (Diastolic_BP >= 80 & Diastolic_BP <= 89), "Stage 1 Hypertension",
+#   ifelse(Systolic_BP >= 140 | Diastolic_BP >= 90, "Stage 2 Hypertension", "Not Classified"))))
+# )
+
+data_q1$BP_category <- with(data_q1, dplyr::case_when(
+  Systolic_BP <= 50 & Diastolic_BP <= 33 ~ "Dangerously low",
+  Systolic_BP <= 60 & Diastolic_BP <= 40 ~ "Very low",
+  Systolic_BP < 90 & Diastolic_BP < 60 ~ "Low",
+  Systolic_BP < 120 & Diastolic_BP < 80 ~ "Normal",
+  Systolic_BP >= 120 & Systolic_BP <= 129 & Diastolic_BP >= 80 ~ "Elevated",
+  Systolic_BP >= 130 & Systolic_BP <= 139 & Diastolic_BP >= 80 & Diastolic_BP <= 89 ~ "Hypertension stage I",
+  Systolic_BP >= 140 & Systolic_BP <= 159 & Diastolic_BP >= 90 & Diastolic_BP <= 99 ~ "Hypertension stage II",
+  Systolic_BP >= 180 & Diastolic_BP >= 120 ~ "Hypertensive crisis",
+  TRUE ~ "Not Classified"
+))
+
+# data_q1 <- data_q1 %>%
+#   filter(data_q1$BP_category != "Not Classified")
+
+#data_q1 <- data_q1[data_q1$BP_category != "Elevated", ]
 ```
 
 ### Model Fitting and Evaluation
@@ -233,9 +245,7 @@ Second, we observed that one of the racial groups had no observations in the dat
 
 Third, we noted that the "Normal" blood pressure category had the highest number of observations among all categories. This imbalance suggests that the multinomial regression model may estimate higher probabilities for the "Normal" category compared to others, reflecting the underlying distribution of the data.
 
-Finally, we explored the relationship between sodium intake and blood pressure categories using Spearman’s rank correlation coefficient. Initially, the correlation calculation returned an NA value, likely due to the presence of missing or non-numeric values in the data. After addressing these issues by ensuring all relevant values were complete and properly formatted, the Spearman correlation was computed. The resulting coefficient was    , indicating a weak positive association. [to be computed]
-
-[also add summary statistics here]
+\[also add summary statistics here\]
 
 ```{r, results='hide'}
 data_q1$Race <- as.factor(data_q1$Race)
@@ -269,20 +279,47 @@ ggplot(data_q1, aes(x = BP_category)) +
 ```
 
 ```{r, results='hide'}
-# Assign numerical values to BP_category for correlation analysis
-data_q1$BP_category_num <- as.numeric(data_q1$BP_category)
+continuous_vars <- data_q1 %>% 
+  dplyr::select(Sodium_intake, Diastolic_BP, Systolic_BP, Alcohol_consumption, Age)
 
-# Calculate Spearman correlation (appropriate for ordinal variables)
-correlation <- cor(data_q1$Sodium_intake, data_q1$BP_category_num, method = "spearman")
-cat("Spearman Correlation between Sodium Intake and BP Category:", correlation, "\n")
+# Summary statistics for continuous variables (including min and max)
+cat("Summary Statistics for Continuous Variables:\n")
+continuous_summary <- data_q1 %>%
+  summarise(
+    across(
+      c(Sodium_intake, Diastolic_BP, Systolic_BP, Alcohol_consumption, Age),
+      list(min = min, max = max, mean = mean, sd = sd),
+      na.rm = TRUE
+    )
+  )
 
-# Visualize relationship between Sodium Intake and BP Category
-ggplot(data_q1, aes(x = BP_category, y = Sodium_intake)) +
-  geom_boxplot(fill = "orange", color = "darkorange") +
-  labs(title = "Sodium Intake by Blood Pressure Category", x = "BP Category", y = "Sodium Intake (mg)") +
-  theme_minimal()
+print(continuous_summary)
 
+# Detailed descriptive statistics using ⁠ skimr ⁠
+cat("\nDetailed Descriptive Statistics:\n")
+skim(continuous_vars)
+
+# Summary statistics for categorical variables
+categorical_vars <- data_q1 %>%
+  dplyr::select(BP_category, Race, Gender)
+
+cat("\nFrequency Tables for Categorical Variables:\n")
+categorical_vars %>%
+  summarise(across(everything(), ~ list(table(.)))) %>%
+  t() %>%
+  apply(1, function(x) {
+    cat("\n", names(x), ":\n")
+    print(as.data.frame(x[[1]]))
+  })
 ```
+
+| Variable Name            | Minimum | Maximum |    Mean | Standard Deviation |
+|--------------------------|--------:|--------:|--------:|-------------------:|
+| Sodium Intake            |       0 |   20006 | 3061.72 |            1411.03 |
+| Diastolic Blood Pressure |      34 |     139 |   72.21 |              11.24 |
+| Systolic Blood Pressure  |   71.33 |  232.33 |  119.04 |              17.86 |
+| Alcohol Consumption      |   -0.66 |   448.1 |    6.02 |              17.68 |
+| Age                      |       8 |      80 |   44.83 |              22.72 |
 
 ```{r, results='hide'}
 # Remove outliers
@@ -308,11 +345,14 @@ data_q1$Race <- factor(data_q1$Race,
 multinom_model <- multinom(factor(BP_category) ~ Sodium_intake + Age + Gender + Race + Alcohol_consumption, data = data_q1)
 
 # Summary of the model
+cat("\n********************Model Summary********************\n")
 summary(multinom_model)
 
 # Extracting p-values
 z_values <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
 p_values <- 2 * (1 - pnorm(abs(z_values)))
+
+cat("\n********************P-Values********************\n")
 print(p_values)
 
 # Predict probabilities for the dataset
@@ -323,17 +363,51 @@ predicted_categories <- predict(multinom_model, newdata = data_q1)
 
 # Evaluate the model
 # Confusion Matrix
+cat("\n********************Confustion Matrix********************\n")
 table(Predicted = predicted_categories, Actual = data_q1$BP_category)
 
 # Print model diagnostics
-cat("Model Coefficients:\n")
+cat("\n********************Model Coefficients:********************\n")
 print(summary(multinom_model)$coefficients)
 
-cat("\nPredicted Categories:\n")
+cat("\n********************Predicted Categories:********************\n")
 head(predicted_categories)
 
-cat("\nPredicted Probabilities:\n")
+cat("\n********************Predicted Probabilities:********************\n")
 head(predicted_probs)
+
+# # Calculate Variance Inflation Factors (VIF)
+# vif_values <- vif(multinom_model)
+# 
+# # Display VIF values
+# vif_values
+
+cat("\n********************VIF Values********************\n")
+vif_multinom <- function(multinom_model) {
+  # Extract the design matrix (X) from the multinomial model
+  X <- model.matrix(multinom_model)
+  
+  # Initialize a vector to store VIF values
+  vif_values <- numeric(ncol(X) - 1)  # Exclude the intercept
+  
+  # Calculate VIF for each predictor
+  for (i in 2:ncol(X)) {  # Start from 2 to skip the intercept
+    # Regress the predictor against all others
+    lm_model <- lm(X[, i] ~ X[, -i])
+    
+    # Compute VIF as 1 / (1 - R-squared)
+    vif_values[i - 1] <- 1 / (1 - summary(lm_model)$r.squared)
+  }
+  
+  # Assign variable names to the VIF values
+  names(vif_values) <- colnames(X)[-1]
+  
+  return(vif_values)
+}
+
+# Run the VIF calculation on your multinomial model
+vif_values <- vif_multinom(multinom_model)
+print(vif_values)
 ```
 
 ```{r, results='hide'}
@@ -341,11 +415,14 @@ head(predicted_probs)
 multinom_model <- multinom(BP_category ~ Sodium_intake*Gender + Sodium_intake*Race + Age + Gender + Race + Alcohol_consumption, data = data_q1)
 
 # Summary of the model
+cat("\n********************Model Summary********************\n")
 summary(multinom_model)
 
 # Extracting p-values
 z_values <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
 p_values <- 2 * (1 - pnorm(abs(z_values)))
+
+cat("\n********************P-Values********************\n")
 print(p_values)
 
 # Predict probabilities for the dataset
@@ -356,21 +433,54 @@ predicted_categories <- predict(multinom_model, newdata = data_q1)
 
 # Evaluate the model
 # Confusion Matrix
+cat("\n********************Confusion Matrix********************\n")
 table(Predicted = predicted_categories, Actual = data_q1$BP_category)
 
 # Print model diagnostics
-cat("Model Coefficients:\n")
+cat("\n********************Model Coefficients:********************\n")
 print(summary(multinom_model)$coefficients)
 
-cat("\nPredicted Categories:\n")
+cat("\n********************Predicted Categories:********************\n")
 head(predicted_categories)
 
-cat("\nPredicted Probabilities:\n")
+cat("\n********************Predicted Probabilities:********************\n")
 head(predicted_probs)
+
+# # Calculate Variance Inflation Factors (VIF)
+# vif_values <- vif(multinom_model)
+# 
+# # Display VIF values
+# vif_values
+
+cat("\n********************VIF Values**************************\n")
+vif_multinom <- function(multinom_model) {
+  # Extract the design matrix (X) from the multinomial model
+  X <- model.matrix(multinom_model)
+  
+  # Initialize a vector to store VIF values
+  vif_values <- numeric(ncol(X) - 1)  # Exclude the intercept
+  
+  # Calculate VIF for each predictor
+  for (i in 2:ncol(X)) {  # Start from 2 to skip the intercept
+    # Regress the predictor against all others
+    lm_model <- lm(X[, i] ~ X[, -i])
+    
+    # Compute VIF as 1 / (1 - R-squared)
+    vif_values[i - 1] <- 1 / (1 - summary(lm_model)$r.squared)
+  }
+  
+  # Assign variable names to the VIF values
+  names(vif_values) <- colnames(X)[-1]
+  
+  return(vif_values)
+}
+
+# Run the VIF calculation on your multinomial model
+vif_values <- vif_multinom(multinom_model)
+print(vif_values)
 ```
 
-The model's AIC of 12037.52 reflects a balance between complexity and fit. The confusion matrix shows the highest accuracy in predicting the "Normal" category but some misclassifications among hypertensive stages.
-The multinomial regression model revealed key associations between blood pressure categories and predictor variables. For "Elevated," the coefficient for sodium intake is negative (-0.000039), suggesting that increased sodium intake may be associated with reduced odds of being in this category compared to "Normal," though the effect size is very small. For "Stage 1" and "Stage 2 Hypertension," the coefficients are positive but small, indicating a slight increase in the odds of being in these categories with increased sodium intake. Age and alcohol consumption were positively associated with higher blood pressure categories, while gender and race demonstrated significant variation; for instance, females had lower odds of elevated and hypertensive categories, and "Non-Hispanic Black" was associated with higher odds of "Stage 1" and "Stage 2 Hypertension." Interaction terms highlighted nuanced relationships, such as weaker sodium intake effects for females but varying effects across racial groups. Predicted probabilities provided insights into classification confidence, with age and alcohol consistently influencing outcomes. While the model converged successfully, the modest effect sizes for some predictors and potential for further refinement suggest opportunities for further investigation.
+The model's AIC of 12037.52 reflects a balance between complexity and fit. The confusion matrix shows the highest accuracy in predicting the "Normal" category but some misclassifications among hypertensive stages. The multinomial regression model revealed key associations between blood pressure categories and predictor variables. For "Elevated," the coefficient for sodium intake is negative (-0.000039), suggesting that increased sodium intake may be associated with reduced odds of being in this category compared to "Normal," though the effect size is very small. For "Stage 1" and "Stage 2 Hypertension," the coefficients are positive but small, indicating a slight increase in the odds of being in these categories with increased sodium intake. Age and alcohol consumption were positively associated with higher blood pressure categories, while gender and race demonstrated significant variation; for instance, females had lower odds of elevated and hypertensive categories, and "Non-Hispanic Black" was associated with higher odds of "Stage 1" and "Stage 2 Hypertension." Interaction terms highlighted nuanced relationships, such as weaker sodium intake effects for females but varying effects across racial groups. Predicted probabilities provided insights into classification confidence, with age and alcohol consistently influencing outcomes. While the model converged successfully, the modest effect sizes for some predictors and potential for further refinement suggest opportunities for further investigation.
 
 ### Research Question 2: Contributing Factors of Blood Mercury Level
 
@@ -416,6 +526,7 @@ data$Hypertensive <- ifelse(data$BPXOSY1 > 140 | data$BPXODI1 > 90, "Yes", "No")
 data$Hypertensive <- as.factor(data$Hypertensive)
 
 ```
+
 #### EDA
 
 ```{r plots-2b, echo=FALSE}
@@ -512,8 +623,7 @@ print(plot_violin)
 
 ```
 
-2.  **Mercury Levels by Race/Ethnicity** The violin plot was used to compare mercury distributions across racial/ethnic groups.
-This graph shows that mercury levels vary significantly across racial and ethnic groups, with Non-Hispanic Asians having the highest levels and the widest distribution. We can see that most distribution are right-skewed meaning that most individuals in all racial cateogries have low mercury levels, but there are noticeable outliers, especially among Non-Hispanic Asians and Non-Hispanic Blacks. 
+2.  **Mercury Levels by Race/Ethnicity** The violin plot was used to compare mercury distributions across racial/ethnic groups. This graph shows that mercury levels vary significantly across racial and ethnic groups, with Non-Hispanic Asians having the highest levels and the widest distribution. We can see that most distribution are right-skewed meaning that most individuals in all racial cateogries have low mercury levels, but there are noticeable outliers, especially among Non-Hispanic Asians and Non-Hispanic Blacks.
 
 ```{r,include=FALSE}
 # Pick only the columns of interest
@@ -660,7 +770,7 @@ plot(model_updated)
 
 This report sheds light on some of the key factors influencing blood pressure and mercury levels in the U.S. population. While we didn’t find a significant link between dietary sodium intake and blood pressure, age stood out as a major predictor of hypertension. This suggests that efforts to prevent high blood pressure should focus more on age-related risk factors. When it comes to mercury exposure, tap water consumption, race, and income emerged as important contributors. Non-Hispanic Asian populations showed significantly higher mercury levels, which raises questions about whether dietary factors cause this or if there is influence from other relationships. To test this we created a model to determine the strength of factors on mercury levels in individuals. The complex relationship between race and income also suggests that environmental exposure risks are not evenly distributed, pointing to areas where public health policies could make a big difference. Overall, these findings suggest a more tailored approach to public health—one that considers individual and community-level differences in exposure and risk. By combining insights from diet, environment, and demographics, we can create more effective strategies to reduce hypertension and mercury toxicity in vulnerable populations.
 
-This study does have some limitations, like the possibility of unmeasured factors and the reliance on observational data, which makes it harder to draw clear cause-and-effect conclusions. Future research could benefit from using long-term data and more gradular studies to better understand how individual and enviornmental factors drive disparities in mercury exposure and hypertension. 
+This study does have some limitations, like the possibility of unmeasured factors and the reliance on observational data, which makes it harder to draw clear cause-and-effect conclusions. Future research could benefit from using long-term data and more gradular studies to better understand how individual and enviornmental factors drive disparities in mercury exposure and hypertension.
 
 ## References
 
