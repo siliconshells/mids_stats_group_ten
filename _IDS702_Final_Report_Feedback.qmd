@@ -42,11 +42,11 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
 ## Abstract
 
-Investigating factors influencing blood pressure and mercury levels in the US population is crucial for public health interventions and environmental policy-making. This study aims to examine the relationships between dietary sodium intake and blood pressure levels, as well as factors that influence blood mercury levels. The dataset analyzed is derived from the Center for Disease Control (CDC) survey data collected through interviews, blood tests, and medical examinations from August 2021 to August 2023. Multinomial regression was used to model blood pressure levels, and linear regression was applied to model blood mercury levels. The analysis revealed no significant association between dietary sodium consumption and blood pressure levels. However, age emerged as a significant predictor of hypertension (p \< 0.001). Older people are more likely to have hypertension. Tap water intakes, age, and income level have a significant positive association with blood mercury level (p \< 0.001). Non-Hispanic Asians have significantly higher mercury level (149.9%) compared with reference group of Mexicans Americans. Females on average have mercury levels 8% lower compared to males. Our study identified key water intake and demographic factors affecting blood mercury levels, which can inform public health policies regarding water consumption and exposure to environmental toxins.
+Investigating factors influencing blood pressure and mercury levels in the US population is crucial for public health interventions and environmental policy-making. This study aims to examine the relationships between dietary sodium intake and blood pressure levels, as well as factors that influence blood mercury levels. The dataset analyzed is derived from the Center for Disease Control (CDC) survey data collected through interviews, blood tests, and medical examinations from August 2021 to August 2023. Multinomial regression was used to model blood pressure levels, and linear regression was applied to model blood mercury levels. The analysis revealed no significant association between dietary sodium consumption and blood pressure levels. However, age emerged as a significant predictor of hypertension (p \< 0.001). As Age increases, the likelihood of having Stage 2 Hypertension (versus Normal) increases, holding other factors constant. Tap water intakes, age, and income level have a significant positive association with blood mercury level (p \< 0.001). Non-Hispanic Asians have significantly higher mercury level (149.9%) compared with reference group of Mexicans Americans. Females on average have mercury levels 8% lower compared to males. Our study identified key water intake and demographic factors affecting blood mercury levels, which can inform public health policies regarding water consumption and exposure to environmental toxins.
 
 ## Introduction
 
-Hypertension and environmental exposure to mercury are significant public health concerns worldwide. With hypertension, affecting over 1.28 billion adults worldwide with a majority in low- and middle-income countries, and environmental mercury exposure, linked to cardiovascular and neurological issues such as elevated blood pressure even at low levels, are significant global public health concerns (World Health Organization; Houston, p 621). Understanding the factors that influence these conditions is critical to improving health outcomes and developing targeted interventions. This study leverages data from the U.S Centers for Disease Control and Prevention (CDC), a nationally representative dataset, to explore two key research questions that address these pressing health issues.
+Hypertension and environmental exposure to mercury are significant public health concerns worldwide (National Center for Biotechnology Information, 2021). With hypertension, affecting over 1.28 billion adults worldwide with a majority in low- and middle-income countries, and environmental mercury exposure, linked to cardiovascular and neurological issues such as elevated blood pressure even at low levels, are significant global public health concerns (World Health Organization; Houston, p 621). Understanding the factors that influence these conditions is critical to improving health outcomes and developing targeted interventions. This study leverages data from the U.S Centers for Disease Control and Prevention (CDC), a nationally representative dataset, to explore two key research questions that address these pressing health issues.
 
 The first research question examines the association between dietary sodium intake and blood pressure levels, with a particular focus on whether the effect varies by factors such as gender and race. Blood pressure is an ordinal variable, categorized into four levels according to CDC guidelines, ranging from normal to Stage 2 hypertension (CDC, 2023). High dietary sodium intake has long been implicated as a risk factor for hypertension, a leading contributor to cardiovascular diseases globally (World Health Organization, 2021). Gender and race may further modulate this relationship due to physiological and social determinants of health, making it essential to explore these interactions. Answering this question provides insights that can inform dietary guidelines and public health policies aimed at reducing hypertension-related morbidity and mortality.
 
@@ -229,13 +229,13 @@ data_q1$BP_category <- with(data_q1,
 
 ### Model Fitting and Evaluation
 
-To investigate the relationships between sodium intake and blood pressure categories, a multinomial logistic regression model was fitted. The initial model included main effects for sodium intake, age, gender, race, and alcohol consumption. Next, interaction terms between sodium intake and gender, as well as sodium intake and race, were introduced to determine whether the effect of sodium intake on blood pressure categories varied across these subgroups. This approach allowed us to explore potential effect modification by demographic factors.
+To examine the relationships between sodium intake and blood pressure categories, a multinomial logistic regression model was developed. The initial model included main effects for sodium intake, age, gender, race, and alcohol consumption. Interaction terms between sodium intake and gender, as well as sodium intake and race, were later introduced to assess whether the effect of sodium intake on blood pressure categories varied across these demographic subgroups. This allowed for the evaluation of potential effect modification.
 
-Model comparisons were conducted using the Akaike Information Criterion (AIC), which evaluates the relative quality of statistical models by balancing goodness of fit and model complexity. Comparing the AIC values of the models with and without interaction terms helped determine whether the additional complexity introduced by the interactions was justified by an improved fit to the data.
+Model comparison was performed using the Akaike Information Criterion (AIC), which balances goodness of fit with model complexity. By comparing AIC values for models with and without interaction terms, we determined whether the improved fit provided by the interaction terms justified the added complexity. Additionally, a confusion matrix was used to evaluate the predictive performance of the multinomial logistic regression model.
 
-A multiple linear regression (MLR) model was used for modeling blood mercury levels. Residual vs fitted plot was used to test linearity and homoscedasticity. R-squared was used to evaluate the performance of the linear regression model.
+For modeling blood mercury levels, a multiple linear regression (MLR) model was employed. Residual vs. fitted plots were analyzed to assess linearity and homoscedasticity, while R-squared was used to evaluate the model’s explanatory power. Variance Inflation Factors (VIFs) were calculated to detect multicollinearity among predictors, with a threshold of 10 used to identify variables for potential removal or transformation.
 
-Variance Inflation Factors (VIFs) were calculated to detect multicollinearity among predictors. Variables with high VIFs (greater than 10) were considered for removal or transformation. Model fit was evaluated using AIC and deviance. A confusion matrix was used to evaluate the performance of the multinomial regression model. All statistical analyses and modeling were done using R programming language.
+All statistical analyses and modeling were conducted using the R programming language. Model fit for both the multinomial and linear regression models was evaluated using AIC and deviance as key metrics.
 
 ## Results
 
@@ -245,9 +245,15 @@ Exploratory data analysis (EDA) revealed several important insights. First, the 
 
 Second, we observed that one of the racial groups had no observations in the dataset, leading to its exclusion from further analysis. Consequently, the analysis was restricted to six racial groups to ensure meaningful and interpretable results.
 
-Third, we noted that the "Normal" blood pressure category had the highest number of observations among all categories. This imbalance suggests that the multinomial regression model may estimate higher probabilities for the "Normal" category compared to others, reflecting the underlying distribution of the data.
+Third, we noted that the "Normal" blood pressure category had the highest number of observations among all categories. This imbalance suggests that the multinomial regression model may estimate higher probabilities for the "Normal" category compared to others, reflecting the underlying distribution of the data. The table below shows the summary statistics of our continuous variables.
 
-\[also add summary statistics here\]
+| Variable Name            | Minimum | Maximum |    Mean | Standard Deviation |
+|--------------------------|--------:|--------:|--------:|-------------------:|
+| Sodium Intake            |       0 |   20006 | 3061.72 |            1411.03 |
+| Diastolic Blood Pressure |      34 |     139 |   72.21 |              11.24 |
+| Systolic Blood Pressure  |   71.33 |  232.33 |  119.04 |              17.86 |
+| Alcohol Consumption      |   -0.66 |   448.1 |    6.02 |              17.68 |
+| Age                      |       8 |      80 |   44.83 |              22.72 |
 
 ```{r, results='hide'}
 data_q1$Race <- as.factor(data_q1$Race)
@@ -316,14 +322,6 @@ categorical_vars %>%
   })
 ```
 
-| Variable Name            | Minimum | Maximum |    Mean | Standard Deviation |
-|--------------------------|--------:|--------:|--------:|-------------------:|
-| Sodium Intake            |       0 |   20006 | 3061.72 |            1411.03 |
-| Diastolic Blood Pressure |      34 |     139 |   72.21 |              11.24 |
-| Systolic Blood Pressure  |   71.33 |  232.33 |  119.04 |              17.86 |
-| Alcohol Consumption      |   -0.66 |   448.1 |    6.02 |              17.68 |
-| Age                      |       8 |      80 |   44.83 |              22.72 |
-
 ```{r, results='hide'}
 # Remove outliers
 data_q1 <- data_q1 %>% filter(data_q1$Sodium_intake < 15000)
@@ -350,140 +348,87 @@ data_q1$Race <- factor(data_q1$Race,
                              "Non-Hispanic Black", "Non-Hispanic Asian", "Multiracial"))
 ```
 
-```{r}
+```{r setup, include=FALSE}
 # Fit the multinomial logistic regression model without interaction terms
 multinom_model <- multinom(factor(BP_category) ~ Sodium_intake + Age + Gender + Race + Alcohol_consumption, data = data_q1)
 
-# Summary of the model
-cat("\n********************Model Summary********************\n")
-summary(multinom_model)
+# Model Summary
+summary_table <- summary(multinom_model)$coefficients %>%
+  as.data.frame() %>%
+  mutate_all(round, 3)
 
-# Extracting p-values
+kable(summary_table, caption = "Model Coefficients") %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
+
+# Calculate p-values
 z_values <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
 p_values <- 2 * (1 - pnorm(abs(z_values)))
 
-cat("\n********************P-Values********************\n")
-print(p_values)
+# Format and display p-values
+p_values_table <- as.data.frame(p_values) %>%
+  mutate_all(round, 3)
 
-# Predict probabilities for the dataset
-predicted_probs <- predict(multinom_model, newdata = data_q1, type = "probs")
+kable(p_values_table, caption = "P-Values for Model Coefficients") %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 
-# Predict the category
-predicted_categories <- predict(multinom_model, newdata = data_q1)
-
-# Evaluate the model
 # Confusion Matrix
-cat("\n********************Confustion Matrix********************\n")
-table(Predicted = predicted_categories, Actual = data_q1$BP_category)
+predicted_categories <- predict(multinom_model, newdata = data_q1)
+confusion_matrix <- table(Predicted = predicted_categories, Actual = data_q1$BP_category)
 
-# Print model diagnostics
-cat("\n********************Model Coefficients:********************\n")
-print(summary(multinom_model)$coefficients)
+kable(confusion_matrix, caption = "Confusion Matrix") %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 
-cat("\n********************Predicted Categories:********************\n")
-head(predicted_categories)
+# Calculate VIF
+vif_values <- vif_multinom(multinom_model) %>%
+  as.data.frame() %>%
+  rename("VIF" = ".") %>%
+  mutate(Variable = rownames(.)) %>%
+  select(Variable, VIF)
 
-cat("\n********************Predicted Probabilities:********************\n")
-head(predicted_probs)
-
-# # Calculate Variance Inflation Factors (VIF)
-# vif_values <- vif(multinom_model)
-# 
-# # Display VIF values
-# vif_values
-
-cat("\n********************VIF Values********************\n")
-vif_multinom <- function(multinom_model) {
-  # Extract the design matrix (X) from the multinomial model
-  X <- model.matrix(multinom_model)
-  
-  # Initialize a vector to store VIF values
-  vif_values <- numeric(ncol(X) - 1)  # Exclude the intercept
-  
-  # Calculate VIF for each predictor
-  for (i in 2:ncol(X)) {  # Start from 2 to skip the intercept
-    # Regress the predictor against all others
-    lm_model <- lm(X[, i] ~ X[, -i])
-    
-    # Compute VIF as 1 / (1 - R-squared)
-    vif_values[i - 1] <- 1 / (1 - summary(lm_model)$r.squared)
-  }
-  
-  # Assign variable names to the VIF values
-  names(vif_values) <- colnames(X)[-1]
-  
-  return(vif_values)
-}
-
-# Run the VIF calculation on your multinomial model
-vif_values <- vif_multinom(multinom_model)
-print(vif_values)
-
+kable(vif_values, caption = "Variance Inflation Factor (VIF)") %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 
-```{r}
+```{r setup, include=FALSE}
 # Fit the multinomial logistic regression model with interaction terms
-multinom_model <- multinom(BP_category ~ Sodium_intake*Gender + Sodium_intake*Race + Age + Gender + Race + Alcohol_consumption, data = data_q1)
+multinom_model <- multinom(BP_category ~ Sodium_intake * Gender + Sodium_intake * Race + Age + Gender + Race + Alcohol_consumption, 
+                           data = data_q1)
 
-# Summary of the model
-cat("\n********************Model Summary********************\n")
-summary(multinom_model)
+# Model Summary
+summary_table <- summary(multinom_model)$coefficients %>%
+  as.data.frame() %>%
+  mutate_all(round, 3)
 
-# Extracting p-values
+kable(summary_table, caption = "Model Coefficients with Interaction Terms") %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
+
+# Calculate p-values
 z_values <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
 p_values <- 2 * (1 - pnorm(abs(z_values)))
 
-cat("\n********************P-Values********************\n")
-print(p_values)
+# Format and display p-values
+p_values_table <- as.data.frame(p_values) %>%
+  mutate_all(round, 3)
 
-# Predict probabilities for the dataset
-predicted_probs <- predict(multinom_model, newdata = data_q1, type = "probs")
+kable(p_values_table, caption = "P-Values for Model Coefficients with Interaction Terms") %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 
-# Predict the category
-predicted_categories <- predict(multinom_model, newdata = data_q1)
-
-# Evaluate the model
 # Confusion Matrix
-cat("\n********************Confusion Matrix********************\n")
-table(Predicted = predicted_categories, Actual = data_q1$BP_category)
+predicted_categories <- predict(multinom_model, newdata = data_q1)
+confusion_matrix <- table(Predicted = predicted_categories, Actual = data_q1$BP_category)
 
-# Print model diagnostics
-cat("\n********************Model Coefficients:********************\n")
-print(summary(multinom_model)$coefficients)
+kable(confusion_matrix, caption = "Confusion Matrix with Interaction Terms") %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 
-cat("\n********************Predicted Categories:********************\n")
-head(predicted_categories)
+# Calculate VIF
+vif_values <- vif_multinom(multinom_model) %>%
+  as.data.frame() %>%
+  rename("VIF" = ".") %>%
+  mutate(Variable = rownames(.)) %>%
+  select(Variable, VIF)
 
-cat("\n********************Predicted Probabilities:********************\n")
-head(predicted_probs)
-
-
-cat("\n********************VIF Values**************************\n")
-vif_multinom <- function(multinom_model) {
-  # Extract the design matrix (X) from the multinomial model
-  X <- model.matrix(multinom_model)
-  
-  # Initialize a vector to store VIF values
-  vif_values <- numeric(ncol(X) - 1)  # Exclude the intercept
-  
-  # Calculate VIF for each predictor
-  for (i in 2:ncol(X)) {  # Start from 2 to skip the intercept
-    # Regress the predictor against all others
-    lm_model <- lm(X[, i] ~ X[, -i])
-    
-    # Compute VIF as 1 / (1 - R-squared)
-    vif_values[i - 1] <- 1 / (1 - summary(lm_model)$r.squared)
-  }
-  
-  # Assign variable names to the VIF values
-  names(vif_values) <- colnames(X)[-1]
-  
-  return(vif_values)
-}
-
-# Run the VIF calculation on your multinomial model
-vif_values <- vif_multinom(multinom_model)
-print(vif_values)
+kable(vif_values, caption = "Variance Inflation Factor (VIF) with Interaction Terms") %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 
 The model's AIC of 12037.52 reflects a balance between complexity and fit. The confusion matrix shows the highest accuracy in predicting the "Normal" category but some misclassifications among hypertensive stages. The multinomial regression model revealed key associations between blood pressure categories and predictor variables. For "Elevated," the coefficient for sodium intake is negative (-0.000039), suggesting that increased sodium intake may be associated with reduced odds of being in this category compared to "Normal," though the effect size is very small. For "Stage 1" and "Stage 2 Hypertension," the coefficients are positive but small, indicating a slight increase in the odds of being in these categories with increased sodium intake. Age and alcohol consumption were positively associated with higher blood pressure categories, while gender and race demonstrated significant variation; for instance, females had lower odds of elevated and hypertensive categories, and "Non-Hispanic Black" was associated with higher odds of "Stage 1" and "Stage 2 Hypertension." Interaction terms highlighted nuanced relationships, such as weaker sodium intake effects for females but varying effects across racial groups. Predicted probabilities provided insights into classification confidence, with age and alcohol consistently influencing outcomes. While the model converged successfully, the modest effect sizes for some predictors and potential for further refinement suggest opportunities for further investigation.
@@ -914,7 +859,13 @@ World Health Organization. (2021). Sodium intake and cardiovascular health. <htt
 
 Agency for Toxic Substances and Disease Registry. (2023). Mercury and health. <https://www.atsdr.cdc.gov/toxprofiles/tp46.pdf>
 
+National Center for Biotechnology Information. (2021). The clinical consequences of mercury exposure. PubMed Central. Retrieved from <https://pmc.ncbi.nlm.nih.gov/articles/PMC8108748/>
+
 ## Appendix
+
+#### Research Question 1:
+
+
 
 ### Research Qustion 2:
 
