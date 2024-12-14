@@ -92,7 +92,7 @@ The systolic and diastolic blood measurements used in this analysis represent th
 
 For the second research question on blood mercury level, the data has 7785 observations, among which 2870 observations have missing values in either predictor or outcome variables. This dataset has missing values in variables of mercury level, income level, and water intakes of bottled water and tap water.
 
-Stochastic regression imputations were used to handle missing values because (1) dataset size is large enough to build reliable imputation models; (2) missing values appear in both predictors and outcome variables; (3) maintains the natural associations in the data; (4) better than median or mean imputations, which are more arbitrary and underestimate variance. Extreme outliers in sodium intake and alcohol consumption were identified using visualizations (boxplots) and summary statistics. Sensitivity analyses were planned to evaluate the impact of including these points. Descriptive statistics (mean, median, range) and visualizations (histograms and boxplots) were used to summarize continuous variables. Bar charts and frequency tables were used to explore the distribution of categorical variables. Relationships between sodium intake and blood pressure levels were explored using boxplots and correlation analyses. Associations between other predictors (e.g., gender, age, race) and blood pressure categories were examined.
+Stochastic regression imputations were used to handle missing values because (1) dataset size is large enough to build reliable imputation models; (2) missing values appear in both predictors and outcome variables; (3) maintains the natural associations in the data; (4) better than median or mean imputations, which are more arbitrary and underestimate variance. Extreme outliers in sodium intake and alcohol consumption were identified using visualizations (boxplots) and summary statistics.
 
 ```{r, results='hide'}
 # take the mean of the three blood pressure measurements (both systolic and diastolic)
@@ -231,7 +231,7 @@ data_q1$BP_category <- with(data_q1,
 
 To examine the relationships between sodium intake and blood pressure categories, a multinomial logistic regression model was developed. The initial model included main effects for sodium intake, age, gender, race, and alcohol consumption. Interaction terms between sodium intake and gender, as well as sodium intake and race, were later introduced to assess whether the effect of sodium intake on blood pressure categories varied across these demographic subgroups. This allowed for the evaluation of potential effect modification.
 
-Model comparison was performed using the Akaike Information Criterion (AIC), which balances goodness of fit with model complexity. By comparing AIC values for models with and without interaction terms, we determined whether the improved fit provided by the interaction terms justified the added complexity. Additionally, a confusion matrix was used to evaluate the predictive performance of the multinomial logistic regression model.
+Model comparison was performed using the Akaike Information Criterion (AIC), which balances goodness of fit with model complexity. By comparing AIC values for multinomial regression models with and without interaction terms, we determined whether the improved fit provided by the interaction terms justified the added complexity. Additionally, a confusion matrix was used to evaluate the predictive performance of the multinomial logistic regression model.
 
 For modeling blood mercury levels, a multiple linear regression (MLR) model was employed. Residual vs. fitted plots were analyzed to assess linearity and homoscedasticity, while R-squared was used to evaluate the model’s explanatory power. Variance Inflation Factors (VIFs) were calculated to detect multicollinearity among predictors, with a threshold of 10 used to identify variables for potential removal or transformation.
 
@@ -255,7 +255,7 @@ Third, we noted that the "Normal" blood pressure category had the highest number
 | Alcohol Consumption      |   -0.66 |   448.1 |    6.02 |              17.68 |
 | Age                      |       8 |      80 |   44.83 |              22.72 |
 
-```{r, results='hide', echo=FALSE}
+```{r, results='hide', echo=FALSE, fig.show = "hide"}
 data_q1$Race <- as.factor(data_q1$Race)
 data_q1$Race <- droplevels(data_q1$Race)
 
