@@ -302,66 +302,6 @@ max(data$Sodium_intake)
 data$BP_category <- factor(data$BP_category, 
                          levels = c("Normal", "Elevated", "Stage 1 Hypertension", "Stage 2 Hypertension"), 
                          ordered = TRUE)
-
-# Fit the ordinal logistic regression model
-basic_model <- polr(BP_category ~ Sodium_intake, data = data, Hess = TRUE)
-
-# Check the model summary
-summary(basic_model)
-Anova(basic_model)
-
-# Odds ratios and confidence intervals
-exp_coef <- exp(coef(basic_model)) # Odds ratios
-ci <- exp(confint(basic_model))    # Confidence intervals
-odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
-
-# Display results
-print(odds_ratios)
-```
-
-```{r, results='hide'}
-coefficients_table <- coef(summary(basic_model))
-p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
-
-coefficients_table <- cbind(coefficients_table, "p value" = p_values)
-
-coefficients_table
-```
-
-```{r, results='hide'}
-brant_test <- brant(basic_model)
-print(brant_test)
-```
-
-```{r, results='hide'}
-# Convert categorical variables to factors
-data$Gender <- factor(data$Gender, levels = c(1, 2), labels = c("Male", "Female"))
-# Adjusted model (adding gender)
-adjusted_model1 <- polr(BP_category ~ Gender, data = data, Hess = TRUE)
-summary(adjusted_model1)
-
-Anova(adjusted_model1)
-# Odds ratios and confidence intervals
-exp_coef <- exp(coef(adjusted_model1)) # Odds ratios
-ci <- exp(confint(adjusted_model1))    # Confidence intervals
-odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
-
-# Display results
-print(odds_ratios)
-```
-
-```{r, results='hide'}
-coefficients_table <- coef(summary(adjusted_model1))
-p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
-
-coefficients_table <- cbind(coefficients_table, "p value" = p_values)
-
-coefficients_table
-```
-
-```{r, results='hide'}
-brant_test <- brant(adjusted_model1)
-print(brant_test)
 ```
 
 ```{r, results='hide'}
@@ -370,56 +310,6 @@ data$Race <- factor(data$Race,
                   levels = c(1, 2, 3, 4, 6, 7),
                   labels = c("Mexican American", "Other Hispanic", "Non-Hispanic White", 
                              "Non-Hispanic Black", "Non-Hispanic Asian", "Multiracial"))
-# Adjusted model (adding race)
-adjusted_model2 <- polr(BP_category ~ Race, data = data, Hess = TRUE)
-summary(adjusted_model2)
-
-Anova(adjusted_model2)
-# Odds ratios and confidence intervals
-exp_coef <- exp(coef(adjusted_model2)) # Odds ratios
-ci <- exp(confint(adjusted_model2))    # Confidence intervals
-odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
-
-# Display results
-print(odds_ratios)
-```
-
-```{r, results='hide'}
-coefficients_table <- coef(summary(adjusted_model2))
-p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
-
-coefficients_table <- cbind(coefficients_table, "p value" = p_values)
-
-coefficients_table
-```
-
-```{r, results='hide'}
-# Adjusted model (adding age)
-adjusted_model3 <- polr(BP_category ~ Age, data = data, Hess = TRUE)
-summary(adjusted_model3)
-
-Anova(adjusted_model3)
-# Odds ratios and confidence intervals
-exp_coef <- exp(coef(adjusted_model3)) # Odds ratios
-ci <- exp(confint(adjusted_model3))    # Confidence intervals
-odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
-
-# Display results
-print(odds_ratios)
-```
-
-```{r, results='hide'}
-coefficients_table <- coef(summary(adjusted_model3))
-p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
-
-coefficients_table <- cbind(coefficients_table, "p value" = p_values)
-
-coefficients_table
-```
-
-```{r, results='hide'}
-brant_test <- brant(adjusted_model3)
-print(brant_test)
 ```
 
 ```{r, results='hide'}
@@ -430,86 +320,7 @@ ggplot(data, aes(x = Age, y = as.numeric(BP_category))) +
 ```
 
 ```{r, results='hide'}
-multi_model1 <- polr(factor(BP_category) ~ Sodium_intake + Gender, data = data, Hess = TRUE)
-summary(multi_model1)
-
-Anova(multi_model1)
-# Odds ratios and confidence intervals
-exp_coef <- exp(coef(multi_model1)) # Odds ratios
-ci <- exp(confint(multi_model1))    # Confidence intervals
-odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
-
-# Display results
-print(odds_ratios)
-
-```
-
-```{r, results='hide'}
-multi_model2 <- polr(factor(BP_category) ~ Sodium_intake + Race, data = data, Hess = TRUE)
-summary(multi_model2)
-
-Anova(multi_model2)
-# Odds ratios and confidence intervals
-exp_coef <- exp(coef(multi_model2)) # Odds ratios
-ci <- exp(confint(multi_model2))    # Confidence intervals
-odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
-
-# Display results
-print(odds_ratios)
-```
-
-```{r, results='hide'}
-coefficients_table <- coef(summary(multi_model2))
-p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
-
-coefficients_table <- cbind(coefficients_table, "p value" = p_values)
-
-coefficients_table
-```
-
-```{r, results='hide'}
-multi_model3 <- polr(factor(BP_category) ~ Sodium_intake + Age, data = data, Hess = TRUE)
-summary(multi_model3)
-
-Anova(multi_model3)
-# Odds ratios and confidence intervals
-exp_coef <- exp(coef(multi_model3)) # Odds ratios
-ci <- exp(confint(multi_model3))    # Confidence intervals
-odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
-
-# Display results
-print(odds_ratios)
-coefficients_table <- coef(summary(multi_model3))
-p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
-
-coefficients_table <- cbind(coefficients_table, "p value" = p_values)
-
-coefficients_table
-```
-
-```{r, results='hide'}
-multi_model4 <- polr(factor(BP_category) ~ Sodium_intake + Gender + Race + Age, data = data, Hess = TRUE)
-summary(multi_model4)
-
-Anova(multi_model4)
-# Odds ratios and confidence intervals
-exp_coef <- exp(coef(multi_model4)) # Odds ratios
-ci <- exp(confint(multi_model4))    # Confidence intervals
-odds_ratios <- data.frame(Odds_Ratio = exp_coef, CI_Lower = ci[1], CI_Upper = ci[2])
-
-# Display results
-print(odds_ratios)
-
-coefficients_table <- coef(summary(multi_model3))
-p_values <- pnorm(abs(coefficients_table[, "t value"]), lower.tail = FALSE) * 2
-
-coefficients_table <- cbind(coefficients_table, "p value" = p_values)
-
-coefficients_table
-```
-
-```{r, results='hide'}
-# Fit the multinomial logistic regression model
+# Fit the multinomial logistic regression model without interaction terms
 multinom_model <- multinom(factor(BP_category) ~ Sodium_intake + Age + Gender + Race + Alcohol_consumption, data = data)
 
 # Summary of the model
