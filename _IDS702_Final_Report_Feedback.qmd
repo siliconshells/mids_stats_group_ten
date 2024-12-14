@@ -243,7 +243,7 @@ All statistical analyses and modeling were conducted using the R programming lan
 
 Exploratory data analysis (EDA) revealed several important insights. First, the sodium intake variable contained outliers with extremely high values, which could potentially skew the results. To address this, we limited sodium intake values to a maximum of 15,000 mg. This threshold was chosen based on the distribution of the data and practical dietary considerations.
 
-Second, we observed that one of the racial groups had no observations in the dataset, leading to its exclusion from further analysis. Consequently, the analysis was restricted to six racial groups to ensure meaningful and interpretable results.
+Second, we observed that the racial group "Other Race" had no observations in the dataset, leading to its exclusion from further analysis. Consequently, the analysis was restricted to six racial groups to ensure meaningful and interpretable results.
 
 Third, we noted that the "Normal" blood pressure category had the highest number of observations among all categories. This imbalance suggests that the multinomial regression model may estimate higher probabilities for the "Normal" category compared to others, reflecting the underlying distribution of the data. The table below shows the summary statistics of our continuous variables.
 
@@ -255,7 +255,7 @@ Third, we noted that the "Normal" blood pressure category had the highest number
 | Alcohol Consumption      |   -0.66 |   448.1 |    6.02 |              17.68 |
 | Age                      |       8 |      80 |   44.83 |              22.72 |
 
-```{r, results='hide'}
+```{r, results='hide', echo=FALSE}
 data_q1$Race <- as.factor(data_q1$Race)
 data_q1$Race <- droplevels(data_q1$Race)
 
@@ -348,7 +348,34 @@ data_q1$Race <- factor(data_q1$Race,
                              "Non-Hispanic Black", "Non-Hispanic Asian", "Multiracial"))
 ```
 
-```{r, include=FALSE}
+The multinomial regression model was applied to analyze the impact of various predictors on five different health categories: Elevated, Normal, Not Classified, Stage 1 Hypertension, and Stage 2 Hypertension. The predictors included Sodium intake, Age, Gender, Race, and Alcohol consumption. The results from the model coefficients reveal the relationship between each predictor and the probability of an individual falling into a particular health category.
+
+- **Sodium Intake**: The coefficient for Sodium intake is zero for all health categories except for "Normal." This suggests that Sodium intake does not have a statistically significant impact on the probability of falling into any health category, including Elevated, Stage 1 Hypertension, and Stage 2 Hypertension. For the "Normal" category, the coefficient of 0 indicates that the sodium intake doesn't significantly differentiate between this category and the others.
+  
+- **Age**: Age has a similar pattern, with the coefficients being zero for all categories except for "Normal." The model indicates that Age does not significantly influence the likelihood of being classified as Stage 1 Hypertension, Stage 2 Hypertension, or Elevated. However, Age plays a role in distinguishing between the Normal and other categories, where small but positive coefficients suggest an increasing likelihood of being classified as "Normal" as age increases.
+
+- **Gender**: Gender is significant only for some categories. In particular, the coefficient for Gender is positive for the "Stage 1 Hypertension" category (0.415), indicating that females may have a higher likelihood of being classified into Stage 1 Hypertension compared to other blood pressure categories. The coefficient is negative for some categories, suggesting gender-related differences in classification but at a relatively low magnitude.
+
+- **Race**: The "Race" variable shows the most substantial influence on health classifications. Individuals classified as **Non-Hispanic White** are significantly more likely to fall into the **Normal** category compared to all other categories, with the coefficient being highly significant (3.458). On the other hand, **Non-Hispanic Black**, **Non-Hispanic Asian**, and **Multiracial** categories have smaller but significant coefficients, indicating that race impacts health classifications, though the influence is smaller compared to the Non-Hispanic White category. **Other Hispanic** has a modest but significant positive effect on the "Normal" category compared to others, while **Stage 1 Hypertension** and **Stage 2 Hypertension** are slightly more likely to be associated with non-White races.
+
+- **Alcohol Consumption**: Alcohol consumption has a minor but significant effect on health classifications. A small negative coefficient for alcohol consumption in the "Normal" and "Stage 1 Hypertension" categories suggests a slightly decreased likelihood of these classifications as alcohol consumption increases.
+
+The p-values for the coefficients provide further insight into the statistical significance of the predictors. P-values below 0.05 indicate significant predictors for blood pressure categories. The following predictors showed statistical significance:
+
+- **Gender**: Gender is significant for **Stage 1 Hypertension** (p-value = 0), suggesting that it plays a role in the likelihood of being classified into this category.
+  
+- **Race**: Race, particularly **Non-Hispanic White** (p-value = 0.000) and **Non-Hispanic Black** (p-value = 0.000), had very low p-values, indicating strong statistical significance in predicting the likelihood of being classified into health categories like Normal, Stage 1 Hypertension, and Stage 2 Hypertension.
+
+- **Alcohol Consumption**: Alcohol consumption has p-values below 0.05 for some categories (e.g., **Normal** and **Stage 1 Hypertension**), indicating its moderate impact on the health classifications.
+
+- **Sodium Intake and Age**: These variables had higher p-values, suggesting that they do not contribute significantly to the prediction of health classifications.
+
+The confusion matrix shows the model’s performance in classifying the categories of health status. The **Normal** category was the most accurately predicted, with 3689 instances classified correctly. However, the model displayed a tendency to misclassify **Normal** cases into **Stage 1 Hypertension** (1201 instances) and **Stage 2 Hypertension** (364 instances). A notable challenge was the complete misclassification of **Elevated** and **Not Classified** cases, as no observations from these categories were correctly predicted. **Stage 1 Hypertension** and **Stage 2 Hypertension** were also misclassified into the other categories, but with lower frequency. Overall, the model showed difficulty distinguishing between certain categories, especially the **Elevated** and **Not Classified** categories.
+
+To assess multicollinearity, Variance Inflation Factors (VIFs) were calculated for each predictor. All VIF values were below the threshold of 5, indicating that multicollinearity is not a major issue in the model. **RaceNon-Hispanic White** had the highest VIF (3.46), suggesting a moderate level of correlation with other predictors, but it does not indicate a severe problem. The rest of the predictors, including **Sodium_intake**, **Age**, **Gender**, and **Alcohol_consumption**, had low VIFs, indicating minimal collinearity.
+
+
+```{r}
 # Fit the multinomial logistic regression model without interaction terms
 multinom_model <- multinom(factor(BP_category) ~ Sodium_intake + Age + Gender + Race + Alcohol_consumption, data = data_q1)
 
@@ -411,7 +438,7 @@ kable(vif_values, caption = "Variance Inflation Factor (VIF)") %>%
   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 
-```{r, include=FALSE}
+```{r, results='hide'}
 # Fit the multinomial logistic regression model with interaction terms
 multinom_model <- multinom(BP_category ~ Sodium_intake * Gender + Sodium_intake * Race + Age + Gender + Race + Alcohol_consumption, 
                            data = data_q1)
@@ -452,9 +479,6 @@ vif_values <- vif_multinom(multinom_model) %>%
 kable(vif_values, caption = "Variance Inflation Factor (VIF) with Interaction Terms") %>%
   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
-
-The model's AIC of 12037.52 reflects a balance between complexity and fit. The confusion matrix shows the highest accuracy in predicting the "Normal" category but some misclassifications among hypertensive stages. The multinomial regression model revealed key associations between blood pressure categories and predictor variables. For "Elevated," the coefficient for sodium intake is negative (-0.000039), suggesting that increased sodium intake may be associated with reduced odds of being in this category compared to "Normal," though the effect size is very small. For "Stage 1" and "Stage 2 Hypertension," the coefficients are positive but small, indicating a slight increase in the odds of being in these categories with increased sodium intake. Age and alcohol consumption were positively associated with higher blood pressure categories, while gender and race demonstrated significant variation; for instance, females had lower odds of elevated and hypertensive categories, and "Non-Hispanic Black" was associated with higher odds of "Stage 1" and "Stage 2 Hypertension." Interaction terms highlighted nuanced relationships, such as weaker sodium intake effects for females but varying effects across racial groups. Predicted probabilities provided insights into classification confidence, with age and alcohol consistently influencing outcomes. While the model converged successfully, the modest effect sizes for some predictors and potential for further refinement suggest opportunities for further investigation.
-
 ### Research Question 2: Contributing Factors of Blood Mercury Level
 
 Our statistical approach employed multiple linear regression with log-transformed mercury levels as the dependent variable, addressing both the non-normal distribution of mercury concentrations and the presence of detection limits in the measurements. The model incorporated water consumption variables (tap and bottled water intake), demographic characteristics (race, gender, age), and socioeconomic status (income-to-poverty ratio) to capture the complex relationships between these factors. Below is a summary descriptive statistics of both dependent variable and priori predictor variables.
