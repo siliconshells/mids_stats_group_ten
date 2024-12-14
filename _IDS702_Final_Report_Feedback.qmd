@@ -96,8 +96,8 @@ Stochastic regression imputations were used to handle missing values because (1)
 
 ```{r, results='hide'}
 # take the mean of the three blood pressure measurements (both systolic and diastolic)
-data_q1_3_measures$BPXOSY <- rowMeans(data_q1_3_measures[, c("BPXOSY1", "BPXOSY2", "BPXOSY3")], na.rm = FALSE)
-data_q1_3_measures$BPXODI <- rowMeans(data_q1_3_measures[, c("BPXODI1", "BPXODI2", "BPXODI3")], na.rm = FALSE)
+data_q1_3_measures$BPXOSY <- rowMeans(data_q1_3_measures[, c("BPXOSY1", "BPXOSY2", "BPXOSY3")], na.rm = TRUE)
+data_q1_3_measures$BPXODI <- rowMeans(data_q1_3_measures[, c("BPXODI1", "BPXODI2", "BPXODI3")], na.rm = TRUE)
 
 data_q1_3_measures <- data_q1_3_measures %>%
   dplyr::select(SEQN, RIAGENDR, RIDAGEYR, RIDRETH3, DR1TSODI, BPXOSY, BPXODI, DR1TALCO)
@@ -195,34 +195,36 @@ predicted_Alcohol_consumption <- predict(Alcohol_consumption_impute_model, newda
 # Impute the predicted values back into the dataset
 data_q1$Alcohol_consumption[missing_Alcohol_consumption] <- predicted_Alcohol_consumption
 
+
+
 # Verify no missing values remain
 colSums(is.na(data_q1))
 ```
 
 ```{r, results='hide'}
-# data_q1$BP_category <- with(data_q1, 
-#   ifelse(Systolic_BP < 120 & Diastolic_BP < 80, "Normal",
-#   ifelse(Systolic_BP >= 120 & Systolic_BP <= 129 & Diastolic_BP < 80, "Elevated",
-#   ifelse((Systolic_BP >= 130 & Systolic_BP <= 139) | (Diastolic_BP >= 80 & Diastolic_BP <= 89), "Stage 1 Hypertension",
-#   ifelse(Systolic_BP >= 140 | Diastolic_BP >= 90, "Stage 2 Hypertension", "Not Classified"))))
-# )
+data_q1$BP_category <- with(data_q1,
+  ifelse(Systolic_BP < 120 & Diastolic_BP < 80, "Normal",
+  ifelse(Systolic_BP >= 120 & Systolic_BP <= 129 & Diastolic_BP < 80, "Elevated",
+  ifelse((Systolic_BP >= 130 & Systolic_BP <= 139) | (Diastolic_BP >= 80 & Diastolic_BP <= 89), "Stage 1 Hypertension",
+  ifelse(Systolic_BP >= 140 | Diastolic_BP >= 90, "Stage 2 Hypertension", "Not Classified"))))
+)
 
-data_q1$BP_category <- with(data_q1, dplyr::case_when(
-  Systolic_BP <= 50 & Diastolic_BP <= 33 ~ "Dangerously low",
-  Systolic_BP <= 60 & Diastolic_BP <= 40 ~ "Very low",
-  Systolic_BP < 90 & Diastolic_BP < 60 ~ "Low",
-  Systolic_BP < 120 & Diastolic_BP < 80 ~ "Normal",
-  Systolic_BP >= 120 & Systolic_BP <= 129 & Diastolic_BP >= 80 ~ "Elevated",
-  Systolic_BP >= 130 & Systolic_BP <= 139 & Diastolic_BP >= 80 & Diastolic_BP <= 89 ~ "Hypertension stage I",
-  Systolic_BP >= 140 & Systolic_BP <= 159 & Diastolic_BP >= 90 & Diastolic_BP <= 99 ~ "Hypertension stage II",
-  Systolic_BP >= 180 & Diastolic_BP >= 120 ~ "Hypertensive crisis",
-  TRUE ~ "Not Classified"
-))
+# data_q1$BP_category <- with(data_q1, dplyr::case_when(
+#   Systolic_BP <= 50 & Diastolic_BP <= 33 ~ "Dangerously low",
+#   Systolic_BP <= 60 & Diastolic_BP <= 40 ~ "Very low",
+#   Systolic_BP < 90 & Diastolic_BP < 60 ~ "Low",
+#   Systolic_BP < 120 & Diastolic_BP < 80 ~ "Normal",
+#   Systolic_BP >= 120 & Systolic_BP <= 129 & Diastolic_BP >= 80 ~ "Elevated",
+#   Systolic_BP >= 130 & Systolic_BP <= 139 & Diastolic_BP >= 80 & Diastolic_BP <= 89 ~ "Hypertension stage I",
+#   Systolic_BP >= 140 & Systolic_BP <= 159 & Diastolic_BP >= 90 & Diastolic_BP <= 99 ~ "Hypertension stage II",
+#   Systolic_BP >= 180 & Diastolic_BP >= 120 ~ "Hypertensive crisis",
+#   TRUE ~ "Not Classified"
+# ))
 
 # data_q1 <- data_q1 %>%
 #   filter(data_q1$BP_category != "Not Classified")
 
-#data_q1 <- data_q1[data_q1$BP_category != "Elevated", ]
+#data_q1 <- data_q1[!is.na(data_q1$BP_category), ]
 ```
 
 ### Model Fitting and Evaluation
@@ -295,7 +297,7 @@ continuous_summary <- data_q1 %>%
 
 print(continuous_summary)
 
-# Detailed descriptive statistics using ⁠ skimr ⁠
+# Detailed descriptive statistics using skimr
 cat("\nDetailed Descriptive Statistics:\n")
 skim(continuous_vars)
 
@@ -326,10 +328,17 @@ categorical_vars %>%
 data_q1 <- data_q1 %>% filter(data_q1$Sodium_intake < 15000)
 max(data_q1$Sodium_intake)
 
-# Ensure BP_category is an ordered factor
-data_q1$BP_category <- factor(data_q1$BP_category, 
-                         levels = c("Normal", "Elevated", "Stage 1 Hypertension", "Stage 2 Hypertension"), 
-                         ordered = TRUE)
+
+# 
+# # Ensure BP_category is an ordered factor
+# data_q1$BP_category <- factor(data_q1$BP_category,
+#                          levels = c("Low", "Normal", "Elevated", "Stage 1 Hypertension", "Stage 2 Hypertension", "Hypertension crisis", "Not Classified"),
+#                          ordered = TRUE)
+
+
+# # Ensure BP_category is an ordered factor
+# data_q1$BP_category <- factor(data_q1$BP_category,
+#                          levels = c("Normal", "Elevated", "Stage 1 Hypertension", "Stage 2 Hypertension"), ordered = TRUE)
 ```
 
 ```{r, results='hide'}
@@ -340,7 +349,7 @@ data_q1$Race <- factor(data_q1$Race,
                              "Non-Hispanic Black", "Non-Hispanic Asian", "Multiracial"))
 ```
 
-```{r, results='hide'}
+```{r}
 # Fit the multinomial logistic regression model without interaction terms
 multinom_model <- multinom(factor(BP_category) ~ Sodium_intake + Age + Gender + Race + Alcohol_consumption, data = data_q1)
 
@@ -408,9 +417,10 @@ vif_multinom <- function(multinom_model) {
 # Run the VIF calculation on your multinomial model
 vif_values <- vif_multinom(multinom_model)
 print(vif_values)
+
 ```
 
-```{r, results='hide'}
+```{r}
 # Fit the multinomial logistic regression model with interaction terms
 multinom_model <- multinom(BP_category ~ Sodium_intake*Gender + Sodium_intake*Race + Age + Gender + Race + Alcohol_consumption, data = data_q1)
 
@@ -446,11 +456,6 @@ head(predicted_categories)
 cat("\n********************Predicted Probabilities:********************\n")
 head(predicted_probs)
 
-# # Calculate Variance Inflation Factors (VIF)
-# vif_values <- vif(multinom_model)
-# 
-# # Display VIF values
-# vif_values
 
 cat("\n********************VIF Values**************************\n")
 vif_multinom <- function(multinom_model) {
