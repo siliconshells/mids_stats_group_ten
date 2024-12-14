@@ -236,15 +236,21 @@ Model comparisons were conducted using the Akaike Information Criterion (AIC), w
 
 A multiple linear regression (MLR) model was used for modeling blood mercury levels. Residual vs fitted plot was used to test linearity and homoscedasticity. R-squared was used to evaluate the performance of the linear regression model.
 
-Variance Inflation Factors (VIFs) were calculated to detect multicollinearity among predictors. Variables with high VIFs were considered for removal or transformation. The proportional odds assumption for ordinal logistic regression was checked using graphical methods and the Brant test. Model fit was evaluated using AIC and deviance. A confusion matrix was used to evaluate the performance of the multinomial regression model. All statistical analyses and modeling were done using R programming language.
+Variance Inflation Factors (VIFs) were calculated to detect multicollinearity among predictors. Variables with high VIFs (greater than 10) were considered for removal or transformation. Model fit was evaluated using AIC and deviance. A confusion matrix was used to evaluate the performance of the multinomial regression model. All statistical analyses and modeling were done using R programming language.
 
 ## Results
 
 ### Research Question 1: Contributing Factors of Blood Pressure Category
 
-##### Distribution of sodium intake, blood pressure categories
+Exploratory data analysis (EDA) revealed several important insights. First, the sodium intake variable contained outliers with extremely high values, which could potentially skew the results. To address this, we limited sodium intake values to a maximum of 15,000 mg. This threshold was chosen based on the distribution of the data and practical dietary considerations.
 
-```{r}
+Second, we observed that one of the racial groups had no observations in the dataset, leading to its exclusion from further analysis. Consequently, the analysis was restricted to six racial groups to ensure meaningful and interpretable results.
+
+Finally, we explored the relationship between sodium intake and blood pressure categories using Spearman’s rank correlation coefficient. Initially, the correlation calculation returned an NA value, likely due to the presence of missing or non-numeric values in the data. After addressing these issues by ensuring all relevant values were complete and properly formatted, the Spearman correlation was computed. The resulting coefficient was , indicating a weak positive association". [to be computed]
+
+[also add summary statistics here]
+
+```{r, results='hide'}
 data$Race <- as.factor(data$Race)
 data$Race <- droplevels(data$Race)
 
@@ -275,9 +281,7 @@ ggplot(data, aes(x = BP_category)) +
 
 ```
 
-##### Correlation Analysis: Sodium intake and Blood Pressure Category
-
-```{r}
+```{r, results='hide'}
 # Assign numerical values to BP_category for correlation analysis
 data$BP_category_num <- as.numeric(data$BP_category)
 
@@ -310,13 +314,6 @@ data$Race <- factor(data$Race,
                   levels = c(1, 2, 3, 4, 6, 7),
                   labels = c("Mexican American", "Other Hispanic", "Non-Hispanic White", 
                              "Non-Hispanic Black", "Non-Hispanic Asian", "Multiracial"))
-```
-
-```{r, results='hide'}
-ggplot(data, aes(x = Age, y = as.numeric(BP_category))) +
-  geom_point() +
-  geom_smooth(method = "loess") +
-  labs(title = "Age vs. BP Category", x = "Age", y = "BP Category")
 ```
 
 ```{r, results='hide'}
