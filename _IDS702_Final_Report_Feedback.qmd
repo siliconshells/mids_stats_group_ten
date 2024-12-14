@@ -291,7 +291,9 @@ Exploratory data analysis (EDA) revealed several important insights. First, the 
 
 Second, we observed that one of the racial groups had no observations in the dataset, leading to its exclusion from further analysis. Consequently, the analysis was restricted to six racial groups to ensure meaningful and interpretable results.
 
-Finally, we explored the relationship between sodium intake and blood pressure categories using Spearman’s rank correlation coefficient. Initially, the correlation calculation returned an NA value, likely due to the presence of missing or non-numeric values in the data. After addressing these issues by ensuring all relevant values were complete and properly formatted, the Spearman correlation was computed. The resulting coefficient was , indicating a weak positive association". [to be computed]
+Third, we noted that the "Normal" blood pressure category had the highest number of observations among all categories. This imbalance suggests that the multinomial regression model may estimate higher probabilities for the "Normal" category compared to others, reflecting the underlying distribution of the data.
+
+Finally, we explored the relationship between sodium intake and blood pressure categories using Spearman’s rank correlation coefficient. Initially, the correlation calculation returned an NA value, likely due to the presence of missing or non-numeric values in the data. After addressing these issues by ensuring all relevant values were complete and properly formatted, the Spearman correlation was computed. The resulting coefficient was    , indicating a weak positive association. [to be computed]
 
 [also add summary statistics here]
 
