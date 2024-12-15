@@ -404,38 +404,6 @@ confusion_matrix <- table(Predicted = predicted_categories, Actual = data_q1$BP_
 
 kable(confusion_matrix, caption = "Confusion Matrix") %>%
   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
-
-# Calculate VIF
-# Function to calculate VIF for multinomial regression models
-vif_multinom <- function(multinom_model) {
-  # Extract the design matrix (X) from the multinomial model
-  X <- model.matrix(multinom_model)
-  
-  # Initialize a vector to store VIF values
-  vif_values <- numeric(ncol(X) - 1)  # Exclude the intercept
-  
-  # Calculate VIF for each predictor
-  for (i in 2:ncol(X)) {  # Start from 2 to skip the intercept
-    # Regress the predictor against all others
-    lm_model <- lm(X[, i] ~ X[, -i])
-    
-    # Compute VIF as 1 / (1 - R-squared)
-    vif_values[i - 1] <- 1 / (1 - summary(lm_model)$r.squared)
-  }
-  
-  # Assign variable names to the VIF values
-  names(vif_values) <- colnames(X)[-1]
-  
-  return(vif_values)
-}
-vif_values <- vif_multinom(multinom_model) %>%
-  as.data.frame() %>%
-  rename("VIF" = ".") %>%
-  mutate(Variable = rownames(.)) %>%
-  dplyr::select(Variable, VIF)
-
-kable(vif_values, caption = "Variance Inflation Factor (VIF)") %>%
-  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 
 ```{r, results='hide'}
@@ -467,16 +435,6 @@ predicted_categories <- predict(multinom_model, newdata = data_q1)
 confusion_matrix <- table(Predicted = predicted_categories, Actual = data_q1$BP_category)
 
 kable(confusion_matrix, caption = "Confusion Matrix with Interaction Terms") %>%
-  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
-
-# Calculate VIF
-vif_values <- vif_multinom(multinom_model) %>%
-  as.data.frame() %>%
-  rename("VIF" = ".") %>%
-  mutate(Variable = rownames(.)) %>%
-  dplyr::select(Variable, VIF)
-
-kable(vif_values, caption = "Variance Inflation Factor (VIF) with Interaction Terms") %>%
   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 ### Research Question 2: Contributing Factors of Blood Mercury Level
@@ -909,6 +867,57 @@ National Center for Biotechnology Information. (2021). The clinical consequences
 ## Appendix
 
 #### Research Question 1:
+
+**VIF for the Multinomial Regression Model without Interaction Terms**
+
+```{r}
+# Calculate VIF
+# Function to calculate VIF for multinomial regression models
+vif_multinom <- function(multinom_model) {
+  # Extract the design matrix (X) from the multinomial model
+  X <- model.matrix(multinom_model)
+  
+  # Initialize a vector to store VIF values
+  vif_values <- numeric(ncol(X) - 1)  # Exclude the intercept
+  
+  # Calculate VIF for each predictor
+  for (i in 2:ncol(X)) {  # Start from 2 to skip the intercept
+    # Regress the predictor against all others
+    lm_model <- lm(X[, i] ~ X[, -i])
+    
+    # Compute VIF as 1 / (1 - R-squared)
+    vif_values[i - 1] <- 1 / (1 - summary(lm_model)$r.squared)
+  }
+  
+  # Assign variable names to the VIF values
+  names(vif_values) <- colnames(X)[-1]
+  
+  return(vif_values)
+}
+vif_values <- vif_multinom(multinom_model) %>%
+  as.data.frame() %>%
+  rename("VIF" = ".") %>%
+  mutate(Variable = rownames(.)) %>%
+  dplyr::select(Variable, VIF)
+
+kable(vif_values, caption = "Variance Inflation Factor (VIF)") %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
+```
+
+**VIF for the Multinomial Regression Model with Interaction Terms**
+
+```{r}
+# Calculate VIF
+vif_values <- vif_multinom(multinom_model) %>%
+  as.data.frame() %>%
+  rename("VIF" = ".") %>%
+  mutate(Variable = rownames(.)) %>%
+  dplyr::select(Variable, VIF)
+
+kable(vif_values, caption = "Variance Inflation Factor (VIF) with Interaction Terms") %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
+```
+
 
 ### Research Question 2:
 
