@@ -250,8 +250,6 @@ Third, we noted that the "Normal" blood pressure category had the highest number
 | Variable Name            | Minimum | Maximum |    Mean | Standard Deviation |
 |--------------------------|--------:|--------:|--------:|-------------------:|
 | Sodium Intake            |       0 |   20006 | 3061.72 |            1411.03 |
-| Diastolic Blood Pressure |      34 |     139 |   72.21 |              11.24 |
-| Systolic Blood Pressure  |   71.33 |  232.33 |  119.04 |              17.86 |
 | Alcohol Consumption      |   -0.66 |   448.1 |    6.02 |              17.68 |
 | Age                      |       8 |      80 |   44.83 |              22.72 |
 
@@ -372,7 +370,7 @@ The p-values for the coefficients provide further insight into the statistical s
 
 The confusion matrix shows the model’s performance in classifying the categories of health status. The **Normal** category was the most accurately predicted, with 3689 instances classified correctly. However, the model displayed a tendency to misclassify **Normal** cases into **Stage 1 Hypertension** (1201 instances) and **Stage 2 Hypertension** (364 instances). A notable challenge was the complete misclassification of **Elevated** and **Not Classified** cases, as no observations from these categories were correctly predicted. **Stage 1 Hypertension** and **Stage 2 Hypertension** were also misclassified into the other categories, but with lower frequency. Overall, the model showed difficulty distinguishing between certain categories, especially the **Elevated** and **Not Classified** categories.
 
-To assess multicollinearity, Variance Inflation Factors (VIFs) were calculated for each predictor. All VIF values were below the threshold of 5, indicating that multicollinearity is not a major issue in the model. **RaceNon-Hispanic White** had the highest VIF (3.46), suggesting a moderate level of correlation with other predictors, but it does not indicate a severe problem. The rest of the predictors, including **Sodium_intake**, **Age**, **Gender**, and **Alcohol_consumption**, had low VIFs, indicating minimal collinearity.
+To assess multicollinearity, Variance Inflation Factors (VIFs) were calculated for each predictor. All VIF values were below the threshold of 5, indicating that multicollinearity is not a major issue in the model. **RaceNon-Hispanic White** had the highest VIF (3.46), suggesting a moderate level of correlation with other predictors, but it does not indicate a severe problem. The rest of the predictors, including **Sodium intake**, **Age**, **Gender**, and **Alcohol consumption**, had low VIFs, indicating minimal collinearity.
 
 
 ```{r}
@@ -866,7 +864,7 @@ National Center for Biotechnology Information. (2021). The clinical consequences
 
 ## Appendix
 
-#### Research Question 1:
+### Research Question 1:
 
 **VIF for the Multinomial Regression Model without Interaction Terms**
 
