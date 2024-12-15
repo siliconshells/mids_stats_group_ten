@@ -380,7 +380,7 @@ predicted_categories <- predict(multinom_model, newdata = data_q1)
 confusion_matrix <- table(Predicted = predicted_categories, Actual = data_q1$BP_category)
 
 kable(confusion_matrix, caption = "Confusion Matrix") %>%
-  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"), font_size = 8)
 ```
 
 ```{r, results='hide'}
