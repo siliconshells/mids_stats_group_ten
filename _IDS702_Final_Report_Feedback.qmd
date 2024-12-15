@@ -1,13 +1,19 @@
 ---
 title: "Exploring the Impact of Dietary and Environmental Factors on Hypertension and Mercury Exposure"
 author: "Danish Maknojia, Mona Saeed, Leonard Eshun, Su Zhang"
-subtitle: "2024-12-14"
+subtitle: "2024-12-15"
 format: pdf
+pdf-engine: xelatex
 header-includes:
       - \usepackage{float}
       - \floatplacement{table}{H}
       - \usepackage{booktabs}
       - \usepackage{caption}
+      - \usepackage{graphicx}
+      - \usepackage{array}
+      - \usepackage{pdflscape}
+      - \usepackage{longtable}
+      - \usepackage{adjustbox}
 
 execute:
   echo: false
@@ -370,20 +376,22 @@ The p-values for the coefficients provide further insight into the statistical s
 
 The confusion matrix shows the model’s performance in classifying the categories of health status. The **Normal** category was the most accurately predicted, with 3689 instances classified correctly. However, the model displayed a tendency to misclassify **Normal** cases into **Stage 1 Hypertension** (1201 instances) and **Stage 2 Hypertension** (364 instances). A notable challenge was the complete misclassification of **Elevated** and **Not Classified** cases, as no observations from these categories were correctly predicted. **Stage 1 Hypertension** and **Stage 2 Hypertension** were also misclassified into the other categories, but with lower frequency. Overall, the model showed difficulty distinguishing between certain categories, especially the **Elevated** and **Not Classified** categories.
 
-To assess multicollinearity, Variance Inflation Factors (VIFs) were calculated for each predictor. All VIF values were below the threshold of 5, indicating that multicollinearity is not a major issue in the model. **RaceNon-Hispanic White** had the highest VIF (3.46), suggesting a moderate level of correlation with other predictors, but it does not indicate a severe problem. The rest of the predictors, including **Sodium intake**, **Age**, **Gender**, and **Alcohol consumption**, had low VIFs, indicating minimal collinearity.
+To assess multicollinearity, Variance Inflation Factors (VIFs) were calculated for each predictor (Appendix). All VIF values were below the threshold of 5, indicating that multicollinearity is not a major issue in the model. **RaceNon-Hispanic White** had the highest VIF (3.46), suggesting a moderate level of correlation with other predictors, but it does not indicate a severe problem.
 
 
-```{r}
+```{r, results='hide'}
 # Fit the multinomial logistic regression model without interaction terms
 multinom_model <- multinom(factor(BP_category) ~ Sodium_intake + Age + Gender + Race + Alcohol_consumption, data = data_q1)
+```
 
+```{r}
 # Model Summary
 summary_table <- summary(multinom_model)$coefficients %>%
   as.data.frame() %>%
   mutate_all(round, 3)
 
-kable(summary_table, caption = "Model Coefficients") %>%
-  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
+kable(summary_table, caption = "Model Coefficients", longtable = TRUE) %>%
+  kable_styling(position = "center", latex_options = "scale_down")
 
 # Calculate p-values
 z_values <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
@@ -393,8 +401,8 @@ p_values <- 2 * (1 - pnorm(abs(z_values)))
 p_values_table <- as.data.frame(p_values) %>%
   mutate_all(round, 3)
 
-kable(p_values_table, caption = "P-Values for Model Coefficients") %>%
-  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
+kable(p_values_table, caption = "P-Values for Model Coefficients", longtable = TRUE) %>%
+  kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", font_size = 7, bootstrap_options = c("striped", "hover"))
 
 # Confusion Matrix
 predicted_categories <- predict(multinom_model, newdata = data_q1)
@@ -404,21 +412,25 @@ kable(confusion_matrix, caption = "Confusion Matrix") %>%
   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 
+
+
 ```{r, results='hide'}
 # Fit the multinomial logistic regression model with interaction terms
-multinom_model <- multinom(BP_category ~ Sodium_intake * Gender + Sodium_intake * Race + Age + Gender + Race + Alcohol_consumption, 
+multinom_model2 <- multinom(BP_category ~ Sodium_intake * Gender + Sodium_intake * Race + Age + Gender + Race + Alcohol_consumption, 
                            data = data_q1)
+```
 
+```{r, results='hide'}
 # Model Summary
-summary_table <- summary(multinom_model)$coefficients %>%
+summary_table <- summary(multinom_model2)$coefficients %>%
   as.data.frame() %>%
   mutate_all(round, 3)
 
 kable(summary_table, caption = "Model Coefficients with Interaction Terms") %>%
-  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
+  kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", bootstrap_options = c("striped", "hover"))
 
 # Calculate p-values
-z_values <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
+z_values <- summary(multinom_model2)$coefficients / summary(multinom_model2)$standard.errors
 p_values <- 2 * (1 - pnorm(abs(z_values)))
 
 # Format and display p-values
@@ -426,10 +438,10 @@ p_values_table <- as.data.frame(p_values) %>%
   mutate_all(round, 3)
 
 kable(p_values_table, caption = "P-Values for Model Coefficients with Interaction Terms") %>%
-  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
+  kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", bootstrap_options = c("striped", "hover"))
 
 # Confusion Matrix
-predicted_categories <- predict(multinom_model, newdata = data_q1)
+predicted_categories <- predict(multinom_model2, newdata = data_q1)
 confusion_matrix <- table(Predicted = predicted_categories, Actual = data_q1$BP_category)
 
 kable(confusion_matrix, caption = "Confusion Matrix with Interaction Terms") %>%
