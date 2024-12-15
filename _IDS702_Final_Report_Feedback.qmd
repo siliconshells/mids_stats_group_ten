@@ -42,7 +42,7 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
 ## Abstract
 
-Investigating factors influencing blood pressure and mercury levels in the US population is crucial for public health interventions and environmental policy-making. This study aims to examine the relationships between dietary sodium intake and blood pressure levels, as well as factors that influence blood mercury levels. The dataset analyzed is derived from the Center for Disease Control (CDC) survey data collected through interviews, blood tests, and medical examinations from August 2021 to August 2023. Multinomial regression was used to model blood pressure levels, and linear regression was applied to model blood mercury levels. The analysis revealed no significant association between dietary sodium consumption and blood pressure levels. However, age emerged as a significant predictor of hypertension (p \< 0.001). As Age increases, the likelihood of having Stage 2 Hypertension (versus Normal) increases, holding other factors constant. Tap water intakes, age, and income level have a significant positive association with blood mercury level (p \< 0.001). Non-Hispanic Asians have significantly higher mercury level (149.9%) compared with reference group of Mexicans Americans. Females on average have mercury levels 8% lower compared to males. Our study identified key water intake and demographic factors affecting blood mercury levels, which can inform public health policies regarding water consumption and exposure to environmental toxins.
+Investigating factors influencing blood pressure and mercury levels in the US population is crucial for public health interventions and environmental policy-making. This study aims to examine the relationships between dietary sodium intake and blood pressure levels, as well as factors that influence blood mercury levels. The dataset analyzed is derived from the Center for Disease Control (CDC) survey data collected through interviews, blood tests, and medical examinations from August 2021 to August 2023. Multinomial regression was used to model blood pressure levels, and linear regression was applied to model blood mercury levels. The analysis revealed no significant association between dietary sodium consumption and blood pressure levels. However, age emerged as a significant predictor of hypertension (p \< 0.001). As Age increases, the likelihood of having Stage 2 Hypertension (versus Normal) increases, holding other factors constant. Tap water intakes, age, and income level have significant positive associations with blood mercury level (p \< 0.001). Non-Hispanic Asians have significantly higher mercury level (289.5%) compared with reference group of Mexicans Americans. Females on average have mercury levels 8% lower compared to males. Income impacts mercury levels differently across racial groups, with Non-Hispanic Whites showing a significant increase (10.2%) and Non-Hispanic Asians showing a significant decrease (10.5%) in mercury levels as income rises. Our study identified key water intake and demographic factors affecting blood mercury levels, which can inform public health policies regarding water consumption and exposure to environmental toxins.
 
 ## Introduction
 
@@ -233,7 +233,7 @@ To examine the relationships between sodium intake and blood pressure categories
 
 Model comparison was performed using the Akaike Information Criterion (AIC), which balances goodness of fit with model complexity. By comparing AIC values for multinomial regression models with and without interaction terms, we determined whether the improved fit provided by the interaction terms justified the added complexity. Additionally, a confusion matrix was used to evaluate the predictive performance of the multinomial logistic regression model.
 
-For modeling blood mercury levels, a multiple linear regression (MLR) model was employed. Residual vs. fitted plots were analyzed to assess linearity and homoscedasticity, while R-squared was used to evaluate the model’s explanatory power. Variance Inflation Factors (VIFs) were calculated to detect multicollinearity among predictors, with a threshold of 10 used to identify variables for potential removal or transformation.
+For modeling blood mercury levels, a multiple linear regression (MLR) model was employed. Residual plots were analyzed to assess linearity and homoscedasticity, while adjusted R-squared was used to evaluate the model’s explanatory power. Variance Inflation Factors (VIFs) were calculated to detect multicollinearity among predictors. We also utilized Cook's distance to examine influential points, and refitted models after removing the influential points to see if that improved the model performance. 
 
 All statistical analyses and modeling were conducted using the R programming language. Model fit for both the multinomial and linear regression models was evaluated using AIC and deviance as key metrics.
 
@@ -437,7 +437,7 @@ kable(confusion_matrix, caption = "Confusion Matrix with Interaction Terms") %>%
 ```
 ### Research Question 2: Contributing Factors of Blood Mercury Level
 
-Our statistical approach employed multiple linear regression with log-transformed mercury levels as the dependent variable, addressing both the non-normal distribution of mercury concentrations and the presence of detection limits in the measurements. The model incorporated water consumption variables (tap and bottled water intake), demographic characteristics (race, gender, age), and socioeconomic status (income-to-poverty ratio) to capture the complex relationships between these factors. Below is a summary descriptive statistics of both dependent variable and priori predictor variables.
+Our statistical approach employed multiple linear regression with log-transformed mercury levels as the dependent variable, addressing both the non-normal distribution of mercury concentrations and the presence of detection limits in the measurements. The model incorporated water consumption variables (tap and bottled water intake), demographic characteristics (race, gender, age), and socioeconomic status (income-to-poverty ratio) and interaction term between race and income level to capture the complex relationships between these factors. Below is a summary descriptive statistics of continuous predictor and outcome variables. For categorical variables, we included a summary statistics table in Appendix 2-A.
 
 ```{r data-2, include=FALSE, warning=FALSE}
 
@@ -478,9 +478,7 @@ data <- data %>%
     Water_Type = factor(Water_Type, levels = c("Tap Water", "Bottled Water", "Both", "None"))
   )
 
-# summariz missing values of variables
-# colSums(is.na(data))
-# datasummary_skim(data)
+
 ```
 
 ```{r}
@@ -544,44 +542,6 @@ kable(
   )
 
 ```
-
-```{r}
-# Create summary table for categorical variables
-categorical_summary_table <- data.frame(
-  Category = c(
-    "Mexican American", "Other Hispanic", "Non-Hispanic White", 
-    "Non-Hispanic Black", "Non-Hispanic Asian", "Other Race",
-    "Male", "Female",
-    "Tap Water", "Bottled Water", "Both", "None"
-  ),
-  N = c(
-    as.numeric(table(data$Race)),
-    as.numeric(table(data$Gender)),
-    as.numeric(table(data$Water_Type))
-  ),
-  `%` = round(c(
-    prop.table(table(data$Race)) * 100,
-    prop.table(table(data$Gender)) * 100,
-    prop.table(table(data$Water_Type)) * 100
-  ), 1)
-)
-
-# Create LaTeX table using kable and kableExtra
-kable(
-  categorical_summary_table,
-  format = "latex",
-  col.names = c("Category", "Count", "Percentage"),
-  caption = "Summary Table for Categorical Variables",
-  booktabs = TRUE
-) %>%
-  kable_styling(
-    latex_options = c("hold_position"),
-    full_width = FALSE,
-    font_size = 10
-  )
-```
-
-#### EDA
 
 ```{r plots-2b, echo=FALSE}
 # Mecury levels
@@ -761,39 +721,37 @@ data$log_LBXTHG <- log(data$LBXTHG)
 colSums(is.na(data))
 ```
 
-We initially fit a multiple linear regression model towards the blood mercury levels. However, in the residuals vs fitted graph (in the appendix section), the spread of residuals increases as the fitted values grow, indicating heteroscedasticity. The Q-Q plot (in the appendix section) deviates significantly from the 45-degree reference line, particularly at the extremes (tails of the distribution), indicating that the residuals are not normally distributed. These suggest a potential violation of the normality assumption. Therefore, we log-transformed the dependent variable to stabilize the variance and help normalize the residuals.
+We initially fit a multiple linear regression model towards the blood mercury levels. However, in the residuals vs fitted graph (Appendix 2-B), the spread of residuals increases as the fitted values grow, indicating heteroscedasticity. The Q-Q plot (Appendix 2-B) deviates significantly from the 45-degree reference line, particularly at the tails of the distribution, indicating that the residuals are not normally distributed. These suggest a potential violation of the normality assumption. Therefore, we log-transformed the dependent variable to stabilize the variance and help normalize the residuals.
 
-When fitting the model, we tried to include interaction term between race and family income to poverty level, because the influence of income on health outcomes such as mercury levels might vary by race due to differences in access to healthcare, dietary habits, or exposure to environmental risk factors and we want to take the heterogeneous effects into considerations. However, the interaction between race and income level has a transformed GVIF value of 2.185 (outputs could be found in appendix), which is slightly high and creates multicollinearity. Therefore, we decided to remove the interaction term and examine the effects of race and income level separately.
+When fitting the model, we included interaction term between race and family income to poverty level, because the influence of income on health outcomes such as mercury levels might vary by race due to differences in access to healthcare, dietary habits, or exposure to environmental risk factors and we want to take the heterogeneous effects into considerations. We also examined the influential points using Cook's distance and marked the top 5 influential points (Appendix 2-C). We then refit the model again after removing these influential points (the model results outputs and residual plots can be found in Appendix 2-D). However, removing influential points did not significant change the model results (adjusted R-squared and p-values). Therefore, we decided to keep these influential points in the model.
 
-We also examined the influential points using Cook's distance and marked the top 5 influential points in below graph. We then refit the model again after removing these influential points (the model results outputs and residual plots can be found in appendix section). We also attempted to remove high leverage points using the threshold of $h_i > \frac{2(p+1)}{n}$. However, removing influential points did not significant change the model results (adjusted R-squared and p-values). Therefore, we decided to keep these influential points in the model.
+Therefore, the final model was to fit logged blood mercury level using age, gender, race, income levels, tap water intake, bottle water intake, and interaction term between race and income levels. The final model outputs are in below table. To make the coefficients easier to interpret, we performed a back-transformation by exponentiating the regression coefficients and their confidence intervals to interpret the results on the original scale of mercury levels rather than their logged value. This allows us to describe how each predictor multiplicatively affects mercury levels, providing more meaningful and practical insights.
 
-```{r}
-# Log-transform the dependent variable
-data$log_LBXTHG <- log(data$LBXTHG)
+The model summary output shows that tap water intake has a significant positive association (\(p < 0.001\)), whereas bottled water intake has no significant effect (\(p = 0.133\)). For the variable of race, compared to the reference level of Mexican Americans, non-Hispanic Asians have 289.5% higher mercury levels, while non-Hispanic Black and other races have 17.1% and 3.9% higher mercury levels, respectively. Non-Hispanic White individuals, however, have mercury levels that are 28.6% lower than the reference group. For demographic factors, both age and income level have a positive association with mercury levels. Holding all other variables constant, for every unit increase in the income-to-poverty ratio, mercury levels increase by 7.6% (\(p = 0.020\)), which may seem counter-intuitive, as families with higher income levels have higher blood mercury levels. Each additional year of age is associated with a 1.4% increase in mercury levels (\(p < 0.001\)). For gender, compared to males, females have mercury levels that are 7.9% lower (\(p = 0.002\)).
 
-# Fit the model
-model_updated <- lm(log_LBXTHG ~ DR1_330Z + DR1BWATZ + Race + INDFMPIR + 
-                   Gender + RIDAGEYR, 
-                   data = data)
+Regarding the interaction between race and income level, the effects of income on mercury levels vary across racial groups. For Non-Hispanic White individuals, a higher income-to-poverty ratio is associated with a 10.2% increase in blood mercury levels (\(p = 0.004\)). Conversely, for Non-Hispanic Asians, a higher income-to-poverty ratio is associated with a 10.5% decrease in mercury levels (\(p = 0.016\)). These significant findings suggest that income affects mercury exposure differently across racial groups. However, for Other Hispanic, Non-Hispanic Black, and Other/Multi-Racial groups, the interaction effects between income and mercury levels are not statistically significant, with p-values of 0.439, 0.307, and 0.145, respectively.
 
-cooks_d <- cooks.distance(model_updated)
 
-# Plot Cook's distance
-plot(cooks_d, type = "h", main = "Influential Points Measured by Cook's Distance",
-     xlab = "Index", ylab = "Cook's Distance")
+```{r,include=FALSE}
+# Rename columns
+colnames(data)[colnames(data) == "log_LBXTHG"] <- "Log_Mercury"
+colnames(data)[colnames(data) == "LBXTHG"] <- "Mercury"
+colnames(data)[colnames(data) == "DR1_330Z"] <- "Tap_Water_Intake"
+colnames(data)[colnames(data) == "DR1BWATZ"] <- "Bottled_Water_Intake"
+colnames(data)[colnames(data) == "INDFMPIR"] <- "Income_Level"
+colnames(data)[colnames(data) == "RIDAGEYR"] <- "Age"
 
-# Identify visually prominent points (top 5 by Cook's distance)
-top_points <- order(cooks_d, decreasing = TRUE)[1:5]
-text(x = top_points, y = cooks_d[top_points],
-     labels = top_points, col = "blue", pos = 4)
+# View updated column names
+# print(colnames(data))
 
 ```
 
-Therefore, the final model was to fit logged blood mercury level using age, gender, race, income levels, tap water intake and bottle water intake. The final model outputs are in below table. To make the coefficients easier to interpret, we performed a back-transformation by exponentiating the regression coefficients and their confidence intervals to interpret the results on the original scale of mercury levels rather than their logged value. This allows us to describe how each predictor multiplicatively affects mercury levels, providing more meaningful and practical insights.
-
-The model summary output shows that tap water intakes has a significant positive association with p-value less than 0.001, whereas bottled water intake has no significant effect (with p-value of 0.151). For the variable of race, compared to the reference level of Mexican Americans, non-Hispanic Asians have 149.9% higher mercury levels, while non-Hispanic, non-Hispanic Black and other races have 45%, 27.4%, 18.7% higher mercury levels respectively. The only racial group that has lower mercury level compared to Mexican Americans is non-Hispanic White, which estimated to be 9% lower than the reference group. For demographic factors, both age and income level have positive association with mercury levels (with p-value \< 0.001). Holding all other variables constant, for every unit increase in the income-to-poverty ratio, mercury levels increase by 14.2%, which is a bit counter-intuitive, as the richer family have higher blood mercury level. Each additional year of age is associated with a 1.4% increase in mercury levels. For gender, females, compared to males (the reference group), have mercury levels that are 8% lower.
 
 ```{r}
+# Fit the model
+model_updated <- lm(Log_Mercury ~ Tap_Water_Intake + Bottled_Water_Intake + Race*Income_Level + 
+                   Gender + Age, 
+                   data = data)
 
 # Extract coefficient table and confidence intervals
 coef_table <- summary(model_updated)$coefficients
@@ -820,10 +778,15 @@ characteristic <- c("Intercept",
                    "Race: Non-Hispanic White",
                    "Race: Non-Hispanic Black",
                    "Race: Non-Hispanic Asian",
-                   "Race: Other",
+                   "Race: Other/Multi-Racial",
                    "Income-to-Poverty Ratio",
                    "Gender: Female",
-                   "Age (years)")
+                   "Age (years)",
+                   "Other Hispanic × Income",
+                   "Non-Hispanic White × Income",
+                   "Non-Hispanic Black × Income",
+                   "Non-Hispanic Asian × Income",
+                   "Other/Multi-Racial × Income")
 
 # Combine into a matrix
 results_matrix <- cbind(characteristic, beta, se, ci_values, p_values)
@@ -838,9 +801,9 @@ kable(results_matrix,
 
 ```
 
-The model is statistically significant (F-statistic = 116.8, p \< 0.001) and explains 12.93% of the variance in blood mercury levels with an adjusted R-squared of 0.1293. The model's low R-squared value is probably because of two possible reasons: (1) There are outstanding outliers of blood mercury levels, but our model's predictor variables on demographics and water drinking types are unlikely to be the key reasons that cause these extremely high mercury levels. The key reason that could lead to extremely high levels could be environmental factors, such as serious chemical pollution. (2) For the mercury exam results, there is lower detection limit. When the actual mercury level is less than this detection limit of 0.21 µg/L, the value would be recorded as 0.12 µg/L, which is actual detection limit divided by the square root of 2. This creates a large cluster of identical values and true values below detection limit are unknown, which makes it harder for the model to explain variation that's artificially removed.
+The model is statistically significant (F-statistic = 81.04, p \< 0.001) and explains 13.34% of the variance in blood mercury levels with an adjusted R-squared of 0.1334. The model's low adjusted R-squared value is probably because of two possible reasons: (1) There are outstanding outliers of blood mercury levels, but our model's predictor variables on demographics and water drinking types are unlikely to be the key reasons that cause these extremely high mercury levels. The key reason could be environmental factors, such as serious chemical pollution. (2) For the mercury exam results, there is lower detection limit. When the actual mercury level is less than this detection limit of 0.21 µg/L, the value would be recorded as 0.12 µg/L. This creates a large cluster of identical values and true values below detection limit are unknown, which makes it harder for the model to explain variation that's artificially removed.
 
-We also evaluated the residual plots of the model (plots are in the appendix section). For the residual plot, there are straight lines in the middle, which is caused by the detection limit of mercury level. For the Q-Q plot, the points follow the diagonal line closely, suggesting good normality in the central part of the distribution. However, there are some deviations in both tails, which are likely due to the outliers in the mercury level. VIF analysis is done and there is no multicollinearity issue in this model.
+We also evaluated the residual plots of the final model (Appendix 2-E). For the residual plot, there are straight lines in the middle, which is caused by the detection limit of mercury level. For the Q-Q plot, the points follow the diagonal line closely, suggesting good normality in the central part of the distribution. However, there are some deviations in both tails, which are likely due to the outliers in the mercury level. VIF analysis (Appendix 2-F) is done and there is no multicollinearity issue detected in this model.
 
 ## Conclusion
 
@@ -919,82 +882,293 @@ kable(vif_values, caption = "Variance Inflation Factor (VIF) with Interaction Te
 
 ### Research Question 2:
 
-**Residual plots for original model without log transformation**
+**Appendix 2-A: Summary table for categorical variables**
 
 ```{r}
-model <- lm(LBXTHG ~ DR1_330Z + DR1BWATZ + Race + INDFMPIR + 
-                   Gender + RIDAGEYR, 
+# Create summary table for categorical variables
+categorical_summary_table <- data.frame(
+  Category = c(
+    "Mexican American", "Other Hispanic", "Non-Hispanic White", 
+    "Non-Hispanic Black", "Non-Hispanic Asian", "Other Race",
+    "Male", "Female",
+    "Tap Water", "Bottled Water", "Both", "None"
+  ),
+  N = c(
+    as.numeric(table(data$Race)),
+    as.numeric(table(data$Gender)),
+    as.numeric(table(data$Water_Type))
+  ),
+  `%` = round(c(
+    prop.table(table(data$Race)) * 100,
+    prop.table(table(data$Gender)) * 100,
+    prop.table(table(data$Water_Type)) * 100
+  ), 1)
+)
+
+# Create LaTeX table using kable and kableExtra
+kable(
+  categorical_summary_table,
+  format = "latex",
+  col.names = c("Category", "Count", "Percentage"),
+  caption = "Summary Table for Categorical Variables",
+  booktabs = TRUE
+) %>%
+  kable_styling(
+    latex_options = c("hold_position"),
+    full_width = FALSE,
+    font_size = 10
+  )
+```
+
+**Appendix 2-B: Residual plots for original model without log transformation and without interaction term**
+
+```{r}
+model <- lm(Mercury ~ Tap_Water_Intake + Bottled_Water_Intake + Race + Income_Level + 
+                   Gender + Age, 
                    data = data)
-#summary(model_updated)
-# par(mfrow = c(1, 2))  # 1 row, 2 columns for plots
 
-# Generate the residual plots
-plot(model, which = 1)  # Residuals vs Fitted
-plot(model, which = 2)  # Normal Q-Q Plot
+# Adjust margins to increase bottom space
+par(mar = c(7, 4, 2, 2)) # Increase bottom margin significantly (c(bottom, left, top, right))
 
-# Reset the graphical parameters to default
-# par(mfrow = c(1, 1))
+# Plot Residuals vs Fitted
+plot(
+  fitted(model), residuals(model), 
+  main = "Residuals vs Fitted", 
+  xlab = "Fitted values", 
+  ylab = "Residuals",
+  cex.lab = 0.8, # Decrease axis label size
+  cex.axis = 0.8, # Decrease axis tick size
+  cex.main = 0.9 # Decrease title size if needed
+)
+
+# Add a horizontal reference line at 0
+abline(h = 0, col = "red", lty = 2)
+
+# Add the full formula in two lines if it is too long
+mtext("lm(Mercury ~ Tap_Water_Intake + Bottled_Water_Intake +", 
+      side = 1, line = 4, cex = 0.8) # First part of the formula
+mtext("Race + Income_Level + Gender + Age)", 
+      side = 1, line = 5, cex = 0.8) # Second part of the formula
+
+# Generate Q-Q plot
+qqnorm(residuals(model), 
+       main = "Normal Q-Q Plot", 
+       cex.lab = 0.8, # Decrease axis label size
+       cex.axis = 0.8, # Decrease axis tick size
+       cex.main = 0.9 # Decrease title size if needed
+)
+
+qqline(residuals(model), col = "red", lwd = 2)
+
+# Add the full formula in two lines at the bottom
+mtext("lm(Mercury ~ Tap_Water_Intake + Bottled_Water_Intake +", 
+      side = 1, line = 4, cex = 0.8) # First part of the formula
+mtext("Race + Income_Level + Gender + Age)", 
+      side = 1, line = 5, cex = 0.8) # Second part of the formula
+
+
 ```
 
-**Residual plots for finalized model**
+
+**Appendix 2-C: Cook's distance analysis for top 5 influential points**
 
 ```{r}
-#par(mfrow = c(1, 2))
+cooks_d <- cooks.distance(model_updated)
 
-# Generate the residual plots
-plot(model_updated, which = 1)  # Residuals vs Fitted
-plot(model_updated, which = 2)  # Normal Q-Q Plot
+# Plot Cook's distance
+plot(cooks_d, type = "h", main = "Influential Points Measured by Cook's Distance",
+     xlab = "Index", ylab = "Cook's Distance")
 
-# Reset the graphical parameters to default
-# par(mfrow = c(1, 1))
+# Identify visually prominent points (top 5 by Cook's distance)
+top_points <- order(cooks_d, decreasing = TRUE)[1:5]
+text(x = top_points, y = cooks_d[top_points],
+     labels = top_points, col = "blue", pos = 4)
+
 ```
 
-**VIF analysis of MLR model if include interaction term between race and income level**
-
-```{r}
-model_interaction <- lm(log_LBXTHG ~ DR1_330Z + DR1BWATZ + Race*INDFMPIR + 
-                    Gender + RIDAGEYR, 
-                  data = data)
-vif(model_interaction)
-```
-
-**MLR model results and residual plots after removing top 5 influential points examined through Cook's distance**
+**Appendix 2-D: MLR model results and residual plots after removing top 5 influential points examined through Cook's distance**
 
 ```{r}
 data_filtered <- data[-top_points, ]
 
 # Refit the model using the filtered dataset
-model_refit <- lm(log_LBXTHG ~ DR1_330Z + DR1BWATZ + Race + INDFMPIR + 
-                    Gender + RIDAGEYR, 
+model_refit <- lm(Log_Mercury ~ Tap_Water_Intake + Bottled_Water_Intake + Race*Income_Level + 
+                   Gender + Age,
                   data = data_filtered)
 
-summary(model_refit)
-plot(model_refit)
-vif(model_refit)
-```
+# Extract coefficient table and confidence intervals
+coef_table <- summary(model_refit)$coefficients
+ci <- confint(model_refit)
 
-**MLR model results and residual plots after removing influential points higher than high leverage threshold**:
+# Back-transform coefficients (exponentiate)
+beta_original <- exp(coef_table[, 1])  # Exponentiate coefficients
+ci_lower <- exp(ci[, 1])  # Exponentiate lower bounds of confidence intervals
+ci_upper <- exp(ci[, 2])  # Exponentiate upper bounds of confidence intervals
+
+# Format back-transformed coefficients and confidence intervals
+beta <- sprintf("%.3f", beta_original)
+ci_values <- sprintf("%.3f, %.3f", ci_lower, ci_upper)
+
+# Add standard error and p-values
+se <- sprintf("%.3f", coef_table[, 2])
+p_values <- ifelse(coef_table[, 4] < 0.001, "< 0.001", sprintf("%.3f", coef_table[, 4]))
+
+# Add predictor variable names
+characteristic <- c("Intercept",
+                   "Tap Water Intake",
+                   "Bottled Water Intake",
+                   "Race: Other Hispanic",
+                   "Race: Non-Hispanic White",
+                   "Race: Non-Hispanic Black",
+                   "Race: Non-Hispanic Asian",
+                   "Race: Other/Multi-Racial",
+                   "Income-to-Poverty Ratio",
+                   "Gender: Female",
+                   "Age (years)",
+                   "Other Hispanic × Income",
+                   "Non-Hispanic White × Income",
+                   "Non-Hispanic Black × Income",
+                   "Non-Hispanic Asian × Income",
+                   "Other/Multi-Racial × Income")
+
+# Combine into a matrix
+results_matrix <- cbind(characteristic, beta, se, ci_values, p_values)
+colnames(results_matrix) <- c("Predictor Variables", "Exp(Beta)", "SE", "95% CI (Exp)", "P-value")
+
+# Create table
+kable(results_matrix,
+      align = c('l', 'c', 'c', 'c', 'c'),
+      row.names = FALSE,
+      caption = "Blood Mercury Levels MLR Summary Table After Removing Influential Points")
+```
 
 ```{r}
-# Calculate leverage values
-leverage_values <- hatvalues(model_updated)
+# Extract the model summary
+model_summary <- summary(model_refit)
 
-# Calculate the threshold for high leverage
-n <- nrow(data)           # Number of observations
-p <- length(coefficients(model_updated))  # Number of predictors (including intercept)
-leverage_threshold <- 2 * (p + 1) / n
+# Extract relevant statistics
+r_squared <- model_summary$r.squared
+adj_r_squared <- model_summary$adj.r.squared
+f_statistic <- model_summary$fstatistic[1] # F-statistic value
+f_df1 <- model_summary$fstatistic[2] # Numerator degrees of freedom
+f_df2 <- model_summary$fstatistic[3] # Denominator degrees of freedom
+p_value <- pf(f_statistic, f_df1, f_df2, lower.tail = FALSE) # Model p-value
 
-# Identify high-leverage points
-high_leverage_points <- which(leverage_values > leverage_threshold)
+# Create a table with the results
+results_table <- data.frame(
+  Metric = c("R-squared", "Adjusted R-squared", "F-statistic", "P-value"),
+  Value = c(
+    format(round(r_squared, 4), nsmall = 4), 
+    format(round(adj_r_squared, 4), nsmall = 4), 
+    format(round(f_statistic, 2), nsmall = 2),
+    format.pval(p_value, digits = 4, eps = 1e-4) # Professionally formatted p-value
+  )
+)
 
-# Remove high-leverage points from the dataset
-data_cleaned <- data[-high_leverage_points, ]
-
-# Refit the model with the cleaned dataset
-model_rerefit <- lm(log_LBXTHG ~ DR1_330Z + DR1BWATZ + Race + INDFMPIR + Gender + RIDAGEYR, data = data_cleaned)
-
-summary(model_rerefit)
-plot(model_rerefit)
-vif(model_rerefit)
+# Professionally display the table using kable
+kable(results_table, align = "lc", caption = "Refitted Model Summary Metrics")
 
 ```
+
+```{r}
+
+# Adjust margins to increase bottom space
+par(mar = c(7, 4, 2, 2)) # Increase bottom margin significantly (c(bottom, left, top, right))
+
+# Plot Residuals vs Fitted
+plot(
+  fitted(model_refit), residuals(model_refit), 
+  main = "Residuals vs Fitted", 
+  xlab = "Fitted values", 
+  ylab = "Residuals",
+  cex.lab = 0.8, # Decrease axis label size
+  cex.axis = 0.8, # Decrease axis tick size
+  cex.main = 0.9 # Decrease title size if needed
+)
+
+# Add a horizontal reference line at 0
+abline(h = 0, col = "red", lty = 2)
+
+# Add the full formula in two lines if it is too long
+mtext("lm(Log_Mercury ~ Tap_Water_Intake + Bottled_Water_Intake +", 
+      side = 1, line = 4, cex = 0.8) # First part of the formula
+mtext("Race:Income_Level + Gender + Age)", 
+      side = 1, line = 5, cex = 0.8) # Second part of the formula
+
+# Generate Q-Q plot
+qqnorm(residuals(model_refit), 
+       main = "Normal Q-Q Plot", 
+       cex.lab = 0.8, # Decrease axis label size
+       cex.axis = 0.8, # Decrease axis tick size
+       cex.main = 0.9 # Decrease title size if needed
+)
+
+qqline(residuals(model_refit), col = "red", lwd = 2)
+
+# Add the full formula in two lines at the bottom
+mtext("lm(Log_Mercury ~ Tap_Water_Intake + Bottled_Water_Intake +", 
+      side = 1, line = 4, cex = 0.8) # First part of the formula
+mtext("Race:Income_Level + Gender + Age)", 
+      side = 1, line = 5, cex = 0.8) # Second part of the formula
+
+
+```
+
+**Appendix 2-E: Residual plots for finalized model**
+
+```{r}
+# Adjust margins to increase bottom space
+par(mar = c(7, 4, 2, 2)) # Increase bottom margin significantly (c(bottom, left, top, right))
+
+# Plot Residuals vs Fitted
+plot(
+  fitted(model_updated), residuals(model_updated), 
+  main = "Residuals vs Fitted", 
+  xlab = "Fitted values", 
+  ylab = "Residuals",
+  cex.lab = 0.8, # Decrease axis label size
+  cex.axis = 0.8, # Decrease axis tick size
+  cex.main = 0.9 # Decrease title size if needed
+)
+
+# Add a horizontal reference line at 0
+abline(h = 0, col = "red", lty = 2)
+
+# Add the full formula in two lines if it is too long
+mtext("lm(Log_Mercury ~ Tap_Water_Intake + Bottled_Water_Intake +", 
+      side = 1, line = 4, cex = 0.8) # First part of the formula
+mtext("Race:Income_Level + Gender + Age)", 
+      side = 1, line = 5, cex = 0.8) # Second part of the formula
+
+# Generate Q-Q plot
+qqnorm(residuals(model_updated), 
+       main = "Normal Q-Q Plot", 
+       cex.lab = 0.8, # Decrease axis label size
+       cex.axis = 0.8, # Decrease axis tick size
+       cex.main = 0.9 # Decrease title size if needed
+)
+
+qqline(residuals(model_updated), col = "red", lwd = 2)
+
+# Add the full formula in two lines at the bottom
+mtext("lm(Log_Mercury ~ Tap_Water_Intake + Bottled_Water_Intake +", 
+      side = 1, line = 4, cex = 0.8) # First part of the formula
+mtext("Race:Income_Level + Gender + Age)", 
+      side = 1, line = 5, cex = 0.8) # Second part of the formula
+
+```
+
+**Appendix 2-F: VIF analysis of final MLR model that includes interaction term between race and income level**
+
+```{r}
+vif_values <- vif(model_updated)
+
+vif_table <- data.frame(
+  Predictor = rownames(vif_values),
+  VIF = round(vif_values, 3)
+)
+
+kable(vif_table, align = "lc", caption = "Variance Inflation Factor (VIF) for Predictors")
+
+```
+
