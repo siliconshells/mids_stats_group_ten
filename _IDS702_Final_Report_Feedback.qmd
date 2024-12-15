@@ -49,7 +49,7 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
 ## Abstract
 
-Investigating factors influencing blood pressure and mercury levels in the US population is crucial for public health interventions and environmental policy-making. This study aims to examine the relationships between dietary sodium intake and blood pressure levels, as well as factors that influence blood mercury levels. The dataset analyzed is derived from the Center for Disease Control (CDC) survey data collected through interviews, blood tests, and medical examinations from August 2021 to August 2023. Multinomial regression was used to model blood pressure levels, and linear regression was applied to model blood mercury levels. The analysis revealed no significant association between dietary sodium consumption and blood pressure levels. However, age emerged as a significant predictor of hypertension (p \< 0.001). As Age increases, the likelihood of having Stage 2 Hypertension (versus Normal) increases, holding other factors constant. Tap water intakes, age, and income level have significant positive associations with blood mercury level (p \< 0.001). Non-Hispanic Asians have significantly higher mercury level (289.5%) compared with reference group of Mexicans Americans. Females on average have mercury levels 8% lower compared to males. Income impacts mercury levels differently across racial groups, with Non-Hispanic Whites showing a significant increase (10.2%) and Non-Hispanic Asians showing a significant decrease (10.5%) in mercury levels as income rises. Our study identified key water intake and demographic factors affecting blood mercury levels, which can inform public health policies regarding water consumption and exposure to environmental toxins.
+Investigating factors influencing blood pressure and mercury levels in the US population is crucial for public health interventions and environmental policy-making. This study aims to examine the relationships between dietary sodium intake and blood pressure levels, as well as factors that influence blood mercury levels. The dataset analyzed is derived from the Center for Disease Control (CDC) survey data collected through interviews, blood tests, and medical examinations from August 2021 to August 2023. Multinomial regression was used to model blood pressure levels, and linear regression was applied to model blood mercury levels. The analysis revealed no significant association between dietary sodium consumption and blood pressure levels. However, age emerged as a significant predictor of blood pressure, with older individuals being more likely to fall into the "Normal" category (p < 0.05). Gender and race were also significant, with Non-Hispanic White individuals showing a significantly higher likelihood of being classified as "Normal" (p = 0.000). Additionally, females were found to be more likely to develop Stage 1 Hypertension (p < 0.05). Tap water intakes, age, and income level have significant positive associations with blood mercury level (p \< 0.001). Non-Hispanic Asians have significantly higher mercury level (289.5%) compared with reference group of Mexicans Americans. Females on average have mercury levels 8% lower compared to males. Income impacts mercury levels differently across racial groups, with Non-Hispanic Whites showing a significant increase (10.2%) and Non-Hispanic Asians showing a significant decrease (10.5%) in mercury levels as income rises. Our study identified key water intake and demographic factors affecting blood mercury levels, which can inform public health policies regarding water consumption and exposure to environmental toxins.
 
 ## Introduction
 
@@ -65,7 +65,7 @@ These research questions address two critical dimensions of health: dietary and 
 
 ### Data Overview and Preprocessing
 
-The dataset used for the first research question consists of information on 7,801 observations, including variables such as sodium intake, blood pressure categories, gender, race, age, and alcohol consumption. The outcome variable, **blood pressure category**, is ordinal and categorized as *Normal*, *Elevated*, *Stage 1 Hypertension*, and *Stage 2 Hypertension* based on both the systolic and diastolic blood measurements as illustrated in the table below. There were 1830 observations with missing values for alcohol consumption and sodium intake and 323 observations have missing values in systolic and diastolic blood pressure measurements.
+The dataset used for the first research question consists of information on 7,801 observations, including variables such as sodium intake, blood pressure categories, gender, race, age, and alcohol consumption. The outcome variable, **blood pressure category**, is ordinal and categorized as *Normal*, *Elevated*, *Stage 1 Hypertension*, and *Stage 2 Hypertension* based on both the systolic and diastolic blood measurements as illustrated in the table below. An additional **Not Classified** class was added to account for measurements that don't fall into any of the ranges below. There were 1830 observations with missing values for alcohol consumption and sodium intake and 323 observations have missing values in systolic and diastolic blood pressure measurements.
 
 ```{r, results='hide'}
 
@@ -248,16 +248,12 @@ All statistical analyses and modeling were conducted using the R programming lan
 
 ### Research Question 1: Contributing Factors of Blood Pressure Category
 
-Exploratory data analysis (EDA) revealed several important insights. First, the sodium intake variable contained outliers with extremely high values, which could potentially skew the results. To address this, we limited sodium intake values to a maximum of 15,000 mg. This threshold was chosen based on the distribution of the data and practical dietary considerations.
-
-Second, we observed that the racial group "Other Race" had no observations in the dataset, leading to its exclusion from further analysis. Consequently, the analysis was restricted to six racial groups to ensure meaningful and interpretable results.
-
-Third, we noted that the "Normal" blood pressure category had the highest number of observations among all categories. This imbalance suggests that the multinomial regression model may estimate higher probabilities for the "Normal" category compared to others, reflecting the underlying distribution of the data. The table below shows the summary statistics of our continuous variables.
+Exploratory data analysis (EDA) revealed several important insights. First, the sodium intake variable contained outliers with extremely high values, which could potentially skew the results. To address this, we limited sodium intake values to a maximum of 15,000 mg. This threshold was chosen based on the distribution of the data and practical dietary considerations. Second, we observed that the racial group "Other Race" had no observations in the dataset, leading to its exclusion from further analysis. Consequently, the analysis was restricted to six racial groups to ensure meaningful and interpretable results. Third, we noted that the "Normal" blood pressure category had the highest number of observations among all categories. This imbalance suggests that the multinomial regression model may estimate higher probabilities for the "Normal" category compared to others, reflecting the underlying distribution of the data. The table below shows the summary statistics of our continuous variables.
 
 | Variable Name       | Minimum | Maximum |    Mean | Standard Deviation |
 |---------------------|--------:|--------:|--------:|-------------------:|
-| Sodium Intake       |       0 |   20006 | 3061.72 |            1411.03 |
-| Alcohol Consumption |   -0.66 |   448.1 |    6.02 |              17.68 |
+| Sodium Intake (mg)  |       0 |   14603 | 3054.1  |            1373.85 |
+| Alcohol Consumption |   -0.585|   448.1 |    6.02 |              17.68 |
 | Age                 |       8 |      80 |   44.83 |              22.72 |
 
 ```{r, results='hide', echo=FALSE, fig.show = "hide"}
@@ -353,58 +349,27 @@ data_q1$Race <- factor(data_q1$Race,
                              "Non-Hispanic Black", "Non-Hispanic Asian", "Multiracial"))
 ```
 
-The multinomial regression model was applied to analyze the impact of various predictors on five different health categories: Elevated, Normal, Not Classified, Stage 1 Hypertension, and Stage 2 Hypertension. The predictors included Sodium intake, Age, Gender, Race, and Alcohol consumption. The results from the model coefficients reveal the relationship between each predictor and the probability of an individual falling into a particular health category.
+The multinomial regression model was applied to analyze the impact of various predictors on five blood pressure categories: Elevated, Normal, Stage 1 Hypertension, Stage 2 Hypertension, and Not Classified. The predictors included Sodium intake, Age, Gender, Race, and Alcohol consumption. The model shows varying effects for different predictors; **Sodium intake** does not significantly influence the probability of being classified into any blood pressure category, as indicated by a coefficient of zero for all categories except "Normal" (p-value > 0.05). Similarly, **Age** does not significantly impact the likelihood of being in these categories (p-value > 0.05), but for the "Normal" category, the model shows a small positive coefficient, suggesting older individuals are slightly more likely to be classified as "Normal". **Gender** plays a significant role in predicting blood pressure categories, especially for "Stage 1 Hypertension" (p-value = 0). The positive coefficient for females indicates they may have a higher likelihood of being classified into this category compared to other blood pressure categories. Gender also shows smaller negative effects for other categories, suggesting some gender-related differences, but with relatively low magnitude (p-value < 0.05).
 
--   **Sodium Intake**: The coefficient for Sodium intake is zero for all health categories except for "Normal." This suggests that Sodium intake does not have a statistically significant impact on the probability of falling into any health category, including Elevated, Stage 1 Hypertension, and Stage 2 Hypertension. For the "Normal" category, the coefficient of 0 indicates that the sodium intake doesn't significantly differentiate between this category and the others.
+**Race** has the most substantial influence on health classifications. **Non-Hispanic White** individuals are significantly more likely to be classified as "Normal" (coefficient = 3.458, p-value = 0.000), while **Non-Hispanic Black**, **Non-Hispanic Asian**, and **Multiracial** categories show smaller but significant coefficients, suggesting race influences blood pressure classifications. **Other Hispanic** shows a modest positive effect for the "Normal" category (p-value < 0.05), while non-White groups are slightly more likely to be classified into higher stages of hypertension. Finally, **Alcohol consumption** has a minor but significant effect on blood pressure categories, particularly in the "Normal" and "Stage 1 Hypertension" categories. A small negative coefficient indicates that as alcohol consumption increases, the likelihood of being classified as "Normal" or "Stage 1 Hypertension" slightly decreases (p-value < 0.05). For a more detailed coefficients and p-values tables refer to the **Appendix 1-A**.
 
--   **Age**: Age has a similar pattern, with the coefficients being zero for all categories except for "Normal." The model indicates that Age does not significantly influence the likelihood of being classified as Stage 1 Hypertension, Stage 2 Hypertension, or Elevated. However, Age plays a role in distinguishing between the Normal and other categories, where small but positive coefficients suggest an increasing likelihood of being classified as "Normal" as age increases.
+The model’s performance, as shown by the confusion matrix below, reveals that the "Normal" category was most accurately predicted, with 3689 correct predictions. However, the model struggled with **Elevated** and **Not Classified** categories, failing to predict any instances correctly. It also misclassified **Stage 1 Hypertension** and **Stage 2 Hypertension**, though with lower frequency. Overall, the model has difficulty distinguishing between certain categories, particularly **Elevated** and **Not Classified**.
 
--   **Gender**: Gender is significant only for some categories. In particular, the coefficient for Gender is positive for the "Stage 1 Hypertension" category (0.415), indicating that females may have a higher likelihood of being classified into Stage 1 Hypertension compared to other blood pressure categories. The coefficient is negative for some categories, suggesting gender-related differences in classification but at a relatively low magnitude.
+To assess multicollinearity, Variance Inflation Factors (VIFs) were calculated for each predictor (Appendix 1-C). All VIF values were below the threshold of 5, indicating that multicollinearity is not a major issue in the model. **RaceNon-Hispanic White** had the highest VIF (3.46), suggesting a moderate level of correlation with other predictors, but it does not indicate a severe problem.
 
--   **Race**: The "Race" variable shows the most substantial influence on health classifications. Individuals classified as **Non-Hispanic White** are significantly more likely to fall into the **Normal** category compared to all other categories, with the coefficient being highly significant (3.458). On the other hand, **Non-Hispanic Black**, **Non-Hispanic Asian**, and **Multiracial** categories have smaller but significant coefficients, indicating that race impacts health classifications, though the influence is smaller compared to the Non-Hispanic White category. **Other Hispanic** has a modest but significant positive effect on the "Normal" category compared to others, while **Stage 1 Hypertension** and **Stage 2 Hypertension** are slightly more likely to be associated with non-White races.
-
--   **Alcohol Consumption**: Alcohol consumption has a minor but significant effect on health classifications. A small negative coefficient for alcohol consumption in the "Normal" and "Stage 1 Hypertension" categories suggests a slightly decreased likelihood of these classifications as alcohol consumption increases.
-
-The p-values for the coefficients provide further insight into the statistical significance of the predictors. P-values below 0.05 indicate significant predictors for blood pressure categories. The following predictors showed statistical significance:
-
--   **Gender**: Gender is significant for **Stage 1 Hypertension** (p-value = 0), suggesting that it plays a role in the likelihood of being classified into this category.
-
--   **Race**: Race, particularly **Non-Hispanic White** (p-value = 0.000) and **Non-Hispanic Black** (p-value = 0.000), had very low p-values, indicating strong statistical significance in predicting the likelihood of being classified into health categories like Normal, Stage 1 Hypertension, and Stage 2 Hypertension.
-
--   **Alcohol Consumption**: Alcohol consumption has p-values below 0.05 for some categories (e.g., **Normal** and **Stage 1 Hypertension**), indicating its moderate impact on the health classifications.
-
--   **Sodium Intake and Age**: These variables had higher p-values, suggesting that they do not contribute significantly to the prediction of health classifications.
-
-The confusion matrix shows the model’s performance in classifying the categories of health status. The **Normal** category was the most accurately predicted, with 3689 instances classified correctly. However, the model displayed a tendency to misclassify **Normal** cases into **Stage 1 Hypertension** (1201 instances) and **Stage 2 Hypertension** (364 instances). A notable challenge was the complete misclassification of **Elevated** and **Not Classified** cases, as no observations from these categories were correctly predicted. **Stage 1 Hypertension** and **Stage 2 Hypertension** were also misclassified into the other categories, but with lower frequency. Overall, the model showed difficulty distinguishing between certain categories, especially the **Elevated** and **Not Classified** categories.
-
-To assess multicollinearity, Variance Inflation Factors (VIFs) were calculated for each predictor (Appendix). All VIF values were below the threshold of 5, indicating that multicollinearity is not a major issue in the model. **RaceNon-Hispanic White** had the highest VIF (3.46), suggesting a moderate level of correlation with other predictors, but it does not indicate a severe problem.
+Interaction terms between sodium intake and race as well as sodium intake and gender were examined; it was found that they did not improve the model's performance. Both models, with and without interaction terms, achieved the same AIC of 16826.49, suggesting no improvement in the model fit. Additionally, introducing these interaction terms led to high VIFs, indicating multicollinearity (Appendix 1-D). Given these issues, we decided to retain the model without interaction terms. For detailed coefficients, p-values, confusion matrix, and VIF tables of the multinomial model with interaction terms, please refer to **Appendix 1-B**.
 
 
 ```{r, results='hide'}
 # Fit the multinomial logistic regression model without interaction terms
 multinom_model <- multinom(factor(BP_category) ~ Sodium_intake + Age + Gender + Race + Alcohol_consumption, data = data_q1)
+
+aic <- AIC(multinom_model)
+# Print AIC
+print(aic)
 ```
 
-```{r results='hide'}
-# Model Summary
-summary_table <- summary(multinom_model)$coefficients %>%
-  as.data.frame() %>%
-  mutate_all(round, 3)
-
-kable(summary_table, caption = "Model Coefficients", longtable = TRUE) %>%
-  kable_styling(position = "center", latex_options = "scale_down")
-
-# Calculate p-values
-z_values <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
-p_values <- 2 * (1 - pnorm(abs(z_values)))
-
-# Format and display p-values
-p_values_table <- as.data.frame(p_values) %>%
-  mutate_all(round, 3)
-
-kable(p_values_table, caption = "P-Values for Model Coefficients", longtable = TRUE) %>%
-  kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", font_size = 7, bootstrap_options = c("striped", "hover"))
-
+```{r}
 # Confusion Matrix
 predicted_categories <- predict(multinom_model, newdata = data_q1)
 confusion_matrix <- table(Predicted = predicted_categories, Actual = data_q1$BP_category)
@@ -417,41 +382,11 @@ kable(confusion_matrix, caption = "Confusion Matrix") %>%
 # Fit the multinomial logistic regression model with interaction terms
 multinom_model2 <- multinom(BP_category ~ Sodium_intake * Gender + Sodium_intake * Race + Age + Gender + Race + Alcohol_consumption, 
                            data = data_q1)
+
+aic_value <- AIC(multinom_model2)
+# Print AIC
+print(aic_value)
 ```
-
-\newgeometry{top=1cm, bottom=1cm, left=1cm, right=1cm}
-\begin{landscape}
-
-```{r, results='asis'}
-# Model Summary
-summary_table <- summary(multinom_model2)$coefficients %>%
-  as.data.frame() %>%
-  mutate_all(round, 3)
-
-kable(summary_table, format = "latex", caption = "Model Coefficients with Interaction Terms") %>%
-  kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", bootstrap_options = c("striped", "hover"))
-
-# Calculate p-values
-z_values <- summary(multinom_model2)$coefficients / summary(multinom_model2)$standard.errors
-p_values <- 2 * (1 - pnorm(abs(z_values)))
-
-# Format and display p-values
-p_values_table <- as.data.frame(p_values) %>%
-  mutate_all(round, 3)
-
-kable(p_values_table, format = "latex", caption = "P-Values for Model Coefficients with Interaction Terms") %>%
-  kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", bootstrap_options = c("striped", "hover"))
-
-# Confusion Matrix
-predicted_categories <- predict(multinom_model2, newdata = data_q1)
-confusion_matrix <- table(Predicted = predicted_categories, Actual = data_q1$BP_category)
-
-kable(confusion_matrix, format = "latex", caption = "Confusion Matrix with Interaction Terms") %>%
-  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
-```
-
-\end{landscape}
-\restoregeometry
 
 ### Research Question 2: Contributing Factors of Blood Mercury Level
 
@@ -823,7 +758,7 @@ We also evaluated the residual plots of the final model (Appendix 2-E). For the 
 
 ## Conclusion
 
-This report sheds light on some of the key factors influencing blood pressure and mercury levels in the U.S. population. While we didn’t find a significant link between dietary sodium intake and blood pressure, age stood out as a major predictor of hypertension. This suggests that efforts to prevent high blood pressure should focus more on age-related risk factors. When it comes to mercury exposure, tap water consumption, race, and income emerged as important contributors. Non-Hispanic Asian populations showed significantly higher mercury levels, which raises questions about whether dietary factors cause this or if there is influence from other relationships. To test this we created a model to determine the strength of factors on mercury levels in individuals. The complex relationship between race and income also suggests that environmental exposure risks are not evenly distributed, pointing to areas where public health policies could make a big difference. Overall, these findings suggest a more tailored approach to public health—one that considers individual and community-level differences in exposure and risk. By combining insights from diet, environment, and demographics, we can create more effective strategies to reduce hypertension and mercury toxicity in vulnerable populations.
+This report sheds light on some of the key factors influencing blood pressure and mercury levels in the U.S. population. While we didn’t find a significant link between dietary sodium intake and blood pressure, age stood out as a major predictor of hypertension. Additionally, females were found to be more likely to develop Stage 1 Hypertension, suggesting that efforts to prevent high blood pressure should focus more on age-related and gender-specific risk factors. When it comes to mercury exposure, tap water consumption, race, and income emerged as important contributors. Non-Hispanic Asian populations showed significantly higher mercury levels, which raises questions about whether dietary factors cause this or if there is influence from other relationships. To test this we created a model to determine the strength of factors on mercury levels in individuals. The complex relationship between race and income also suggests that environmental exposure risks are not evenly distributed, pointing to areas where public health policies could make a big difference. Overall, these findings suggest a more tailored approach to public health—one that considers individual and community-level differences in exposure and risk. By combining insights from diet, environment, and demographics, we can create more effective strategies to reduce hypertension and mercury toxicity in vulnerable populations.
 
 This study does have some limitations, like the possibility of confounding variables not included in the model (e.g., physical activity, environmental factors, genetic predispositions) could influence blood pressure and blood mercury levels, potentially biasing the results. Moreover, the reliance on observational data also makes it harder to draw clear cause-and-effect conclusions. Future research could consider finding datasets on other relevant variables, such as physical activity, environmental factors, and genetic markers, to capture a more comprehensive view of the determinants of blood pressure and mercury levels. Additionally, identifying thresholds or cutoffs (e.g., alcohol intake levels) that have meaningful clinical implications for blood pressure management would also help increase practical significance of this statistical analysis. Future research could benefit from using long-term data and more granular studies to better understand how individual and environmental factors drive disparities in mercury exposure and hypertension.
 
@@ -831,9 +766,9 @@ This study does have some limitations, like the possibility of confounding varia
 
 Centers for Disease Control and Prevention. (2023). High blood pressure facts and statistics. <https://www.cdc.gov/highbloodpressure/data-research/facts-stats/index.html>
 
-Houston, Michael C. "The Role of Mercury in Cardiovascular Disease." Journal of Clinical Hypertension, vol. 13, no. 8, 2011, pp. 621–627, https://doi.org/10.1111/j.1751-7176.2011.00489.x.
+Houston, Michael C. "The Role of Mercury in Cardiovascular Disease." Journal of Clinical Hypertension, vol. 13, no. 8, 2011, pp. 621–627, <https://doi.org/10.1111/j.1751-7176.2011.00489.x>.
 
-World Health Organization. "Hypertension." WHO, 2023, https://www.who.int/news-room/fact-sheets/detail/hypertension.
+World Health Organization. "Hypertension." WHO, 2023, <https://www.who.int/news-room/fact-sheets/detail/hypertension>.
 
 World Health Organization. (2021). Sodium intake and cardiovascular health. <https://www.who.int/news-room/fact-sheets/detail/sodium-intake-for-adults-and-children>
 
@@ -841,11 +776,75 @@ Agency for Toxic Substances and Disease Registry. (2023). Mercury and health. <h
 
 National Center for Biotechnology Information. (2021). The clinical consequences of mercury exposure. PubMed Central. Retrieved from <https://pmc.ncbi.nlm.nih.gov/articles/PMC8108748/>
 
+\newpage
+
 ## Appendix
 
-### Research Question 1:
+### Research Question 1
 
-**VIF for the Multinomial Regression Model without Interaction Terms**
+\newgeometry{top=1cm, bottom=1cm, left=1cm, right=1cm}
+\begin{landscape}
+
+Appendix 1-A: Multinomial Model Coefficients and P-values without Interaction Terms
+
+```{r, results='asis'}
+# Model Summary
+summary_table <- summary(multinom_model)$coefficients %>%
+  as.data.frame() %>%
+  mutate_all(round, 3)
+
+kable(summary_table, format = "latex", caption = "Model Coefficients without Interaction Terms") %>%
+  kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", bootstrap_options = c("striped", "hover"))
+
+# Calculate p-values
+z_values <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
+p_values <- 2 * (1 - pnorm(abs(z_values)))
+
+# Format and display p-values
+p_values_table <- as.data.frame(p_values) %>%
+  mutate_all(round, 3)
+
+kable(p_values_table, format = "latex", caption = "P-Values for Model Coefficients without Interaction Terms") %>%
+  kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", bootstrap_options = c("striped", "hover"))
+```
+\end{landscape}
+\restoregeometry
+
+\newgeometry{top=1cm, bottom=1cm, left=1cm, right=1cm}
+\begin{landscape}
+
+Appendix 1-B: Multinomial Model Coefficients and P-values with Interaction Terms
+```{r, results='asis'}
+# Model Summary
+summary_table <- summary(multinom_model2)$coefficients %>%
+  as.data.frame() %>%
+  mutate_all(round, 3)
+
+kable(summary_table, format = "latex", caption = "Model Coefficients with Interaction Terms") %>%
+  kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", bootstrap_options = c("striped", "hover"))
+
+# Calculate p-values
+z_values <- summary(multinom_model2)$coefficients / summary(multinom_model2)$standard.errors
+p_values <- 2 * (1 - pnorm(abs(z_values)))
+
+# Format and display p-values
+p_values_table <- as.data.frame(p_values) %>%
+  mutate_all(round, 3)
+
+kable(p_values_table, format = "latex", caption = "P-Values for Model Coefficients with Interaction Terms") %>%
+  kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", bootstrap_options = c("striped", "hover"))
+
+# Confusion Matrix
+predicted_categories <- predict(multinom_model2, newdata = data_q1)
+confusion_matrix <- table(Predicted = predicted_categories, Actual = data_q1$BP_category)
+
+kable(confusion_matrix, format = "latex", caption = "Confusion Matrix with Interaction Terms") %>%
+  kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
+```
+\end{landscape}
+\restoregeometry
+
+**Appendix 1-C: VIF for the Multinomial Regression Model without Interaction Terms**
 
 ```{r}
 # Calculate VIF
@@ -881,11 +880,11 @@ kable(vif_values, caption = "Variance Inflation Factor (VIF)") %>%
   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 
-**VIF for the Multinomial Regression Model with Interaction Terms**
+**Appendix 1-D: VIF for the Multinomial Regression Model with Interaction Terms**
 
 ```{r}
 # Calculate VIF
-vif_values <- vif_multinom(multinom_model) %>%
+vif_values <- vif_multinom(multinom_model2) %>%
   as.data.frame() %>%
   rename("VIF" = ".") %>%
   mutate(Variable = rownames(.)) %>%
@@ -895,7 +894,7 @@ kable(vif_values, caption = "Variance Inflation Factor (VIF) with Interaction Te
   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 
-### Research Question 2:
+### Research Question 2
 
 **Appendix 2-A: Summary table for categorical variables**
 
