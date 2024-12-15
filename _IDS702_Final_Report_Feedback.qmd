@@ -351,11 +351,11 @@ data_q1$Race <- factor(data_q1$Race,
 
 The multinomial regression model was applied to analyze the impact of various predictors on five blood pressure categories: Elevated, Normal, Stage 1 Hypertension, Stage 2 Hypertension, and Not Classified. The predictors included Sodium intake, Age, Gender, Race, and Alcohol consumption. The model shows varying effects for different predictors; **Sodium intake** does not significantly influence the probability of being classified into any blood pressure category, as indicated by a coefficient of zero for all categories except "Normal" (p-value > 0.05). Similarly, **Age** does not significantly impact the likelihood of being in these categories (p-value > 0.05), but for the "Normal" category, the model shows a small positive coefficient, suggesting older individuals are slightly more likely to be classified as "Normal". **Gender** plays a significant role in predicting blood pressure categories, especially for "Stage 1 Hypertension" (p-value = 0). The positive coefficient for females indicates they may have a higher likelihood of being classified into this category compared to other blood pressure categories. Gender also shows smaller negative effects for other categories, suggesting some gender-related differences, but with relatively low magnitude (p-value < 0.05).
 
-**Race** has the most substantial influence on health classifications. **Non-Hispanic White** individuals are significantly more likely to be classified as "Normal" (coefficient = 3.458, p-value = 0.000), while **Non-Hispanic Black**, **Non-Hispanic Asian**, and **Multiracial** categories show smaller but significant coefficients, suggesting race influences blood pressure classifications. **Other Hispanic** shows a modest positive effect for the "Normal" category (p-value < 0.05), while non-White groups are slightly more likely to be classified into higher stages of hypertension. Finally, **Alcohol consumption** has a minor but significant effect on blood pressure categories, particularly in the "Normal" and "Stage 1 Hypertension" categories. A small negative coefficient indicates that as alcohol consumption increases, the likelihood of being classified as "Normal" or "Stage 1 Hypertension" slightly decreases (p-value < 0.05). For a more detailed coefficients and p-values tables refer to the **Appendix 1-A**.
+**Race** has the most substantial influence on health classifications. **Non-Hispanic White** individuals are significantly more likely to be classified as "Normal" (coefficient = 3.458, p-value = 0.000), while **Non-Hispanic Black**, **Non-Hispanic Asian**, and **Multiracial** categories show smaller but significant coefficients, suggesting race influences blood pressure classifications. **Other Hispanic** shows a modest positive effect for the "Normal" category (p-value < 0.05), while non-White groups are slightly more likely to be classified into higher stages of hypertension. Finally, **Alcohol consumption** has a minor but significant effect on blood pressure categories, particularly in the "Normal" and "Stage 1 Hypertension" categories. A small negative coefficient indicates that as alcohol consumption increases, the likelihood of being classified as "Normal" or "Stage 1 Hypertension" slightly decreases (p-value < 0.05). For a more detailed coefficients and p-values tables refer to **Appendix 1-A**.
 
 The model’s performance, as shown by the confusion matrix below, reveals that the "Normal" category was most accurately predicted, with 3689 correct predictions. However, the model struggled with **Elevated** and **Not Classified** categories, failing to predict any instances correctly. It also misclassified **Stage 1 Hypertension** and **Stage 2 Hypertension**, though with lower frequency. Overall, the model has difficulty distinguishing between certain categories, particularly **Elevated** and **Not Classified**.
 
-To assess multicollinearity, Variance Inflation Factors (VIFs) were calculated for each predictor (Appendix 1-C). All VIF values were below the threshold of 5, indicating that multicollinearity is not a major issue in the model. **RaceNon-Hispanic White** had the highest VIF (3.46), suggesting a moderate level of correlation with other predictors, but it does not indicate a severe problem.
+To assess multicollinearity, Variance Inflation Factors (VIFs) were calculated for each predictor (Appendix 1-C). All VIF values were below the threshold of 5, indicating that multicollinearity is not a major issue in the model. **Non-Hispanic White** had the highest VIF (3.46), suggesting a moderate level of correlation with other predictors, but it does not indicate a severe problem.
 
 Interaction terms between sodium intake and race as well as sodium intake and gender were examined; it was found that they did not improve the model's performance. Both models, with and without interaction terms, achieved the same AIC of 16826.49, suggesting no improvement in the model fit. Additionally, introducing these interaction terms led to high VIFs, indicating multicollinearity (Appendix 1-D). Given these issues, we decided to retain the model without interaction terms. For detailed coefficients, p-values, confusion matrix, and VIF tables of the multinomial model with interaction terms, please refer to **Appendix 1-B**.
 
@@ -367,6 +367,11 @@ multinom_model <- multinom(factor(BP_category) ~ Sodium_intake + Age + Gender + 
 aic <- AIC(multinom_model)
 # Print AIC
 print(aic)
+deviance_value <- deviance(multinom_model)
+
+# Print deviance
+print(deviance_value)
+
 ```
 
 ```{r}
@@ -386,6 +391,12 @@ multinom_model2 <- multinom(BP_category ~ Sodium_intake * Gender + Sodium_intake
 aic_value <- AIC(multinom_model2)
 # Print AIC
 print(aic_value)
+# Calculate deviance of the fitted multinomial model
+deviance_value <- deviance(multinom_model2)
+
+# Print deviance
+print(deviance_value)
+
 ```
 
 ### Research Question 2: Contributing Factors of Blood Mercury Level
@@ -676,9 +687,7 @@ colSums(is.na(data))
 
 We initially fit a multiple linear regression model towards the blood mercury levels. However, in the residuals vs fitted graph (Appendix 2-B), the spread of residuals increases as the fitted values grow, indicating heteroscedasticity. The Q-Q plot (Appendix 2-B) deviates significantly from the 45-degree reference line, particularly at the tails of the distribution, indicating that the residuals are not normally distributed. These suggest a potential violation of the normality assumption. Therefore, we log-transformed the dependent variable to stabilize the variance and help normalize the residuals.
 
-When fitting the model, we included interaction term between race and family income to poverty level, because the influence of income on health outcomes such as mercury levels might vary by race due to differences in access to healthcare, dietary habits, or exposure to environmental risk factors and we want to take the heterogeneous effects into considerations. We also examined the influential points using Cook's distance and marked the top 5 influential points (Appendix 2-C). We then refit the model again after removing these influential points (the model results outputs and residual plots can be found in Appendix 2-D). However, removing influential points did not significant change the model results (adjusted R-squared and p-values). Therefore, we decided to keep these influential points in the model.
-
-Therefore, the final model was to fit logged blood mercury level using age, gender, race, income levels, tap water intake, bottle water intake, and interaction term between race and income levels. The final model outputs are in below table. To make the coefficients easier to interpret, we performed a back-transformation by exponentiating the regression coefficients and their confidence intervals to interpret the results on the original scale of mercury levels rather than their logged value. This allows us to describe how each predictor multiplicatively affects mercury levels, providing more meaningful and practical insights.
+When fitting the model, we included interaction term between race and family income to poverty level, because the influence of income on health outcomes such as mercury levels might vary by race due to differences in access to healthcare, dietary habits, or exposure to environmental risk factors and we want to take the heterogeneous effects into considerations. We also examined the influential points using Cook's distance and marked the top 5 influential points (Appendix 2-C). We then refit the model again after removing these influential points (the model results outputs and residual plots can be found in Appendix 2-D). However, removing influential points did not significantly change the model results (adjusted R-squared and p-values). Therefore, we decided to keep these influential points in the model. Hence, the final model was to fit logged blood mercury level using age, gender, race, income levels, tap water intake, bottle water intake, and interaction term between race and income levels. Refer to **Appendix 2-1** for a detailed model output.
 
 The model summary output shows that tap water intake has a significant positive association ((p \< 0.001)), whereas bottled water intake has no significant effect ((p = 0.133)). For the variable of race, compared to the reference level of Mexican Americans, non-Hispanic Asians have 289.5% higher mercury levels, while non-Hispanic Black and other races have 17.1% and 3.9% higher mercury levels, respectively. Non-Hispanic White individuals, however, have mercury levels that are 28.6% lower than the reference group. For demographic factors, both age and income level have a positive association with mercury levels. Holding all other variables constant, for every unit increase in the income-to-poverty ratio, mercury levels increase by 7.6% ((p = 0.020)), which may seem counter-intuitive, as families with higher income levels have higher blood mercury levels. Each additional year of age is associated with a 1.4% increase in mercury levels ((p \< 0.001)). For gender, compared to males, females have mercury levels that are 7.9% lower ((p = 0.002)).
 
@@ -698,58 +707,11 @@ colnames(data)[colnames(data) == "RIDAGEYR"] <- "Age"
 
 ```
 
-```{r}
+```{r, results='hide'}
 # Fit the model
 model_updated <- lm(Log_Mercury ~ Tap_Water_Intake + Bottled_Water_Intake + Race*Income_Level + 
                    Gender + Age, 
                    data = data)
-
-# Extract coefficient table and confidence intervals
-coef_table <- summary(model_updated)$coefficients
-ci <- confint(model_updated)
-
-# Back-transform coefficients (exponentiate)
-beta_original <- exp(coef_table[, 1])  # Exponentiate coefficients
-ci_lower <- exp(ci[, 1])  # Exponentiate lower bounds of confidence intervals
-ci_upper <- exp(ci[, 2])  # Exponentiate upper bounds of confidence intervals
-
-# Format back-transformed coefficients and confidence intervals
-beta <- sprintf("%.3f", beta_original)
-ci_values <- sprintf("%.3f, %.3f", ci_lower, ci_upper)
-
-# Add standard error and p-values
-se <- sprintf("%.3f", coef_table[, 2])
-p_values <- ifelse(coef_table[, 4] < 0.001, "< 0.001", sprintf("%.3f", coef_table[, 4]))
-
-# Add predictor variable names
-characteristic <- c("Intercept",
-                   "Tap Water Intake",
-                   "Bottled Water Intake",
-                   "Race: Other Hispanic",
-                   "Race: Non-Hispanic White",
-                   "Race: Non-Hispanic Black",
-                   "Race: Non-Hispanic Asian",
-                   "Race: Other/Multi-Racial",
-                   "Income-to-Poverty Ratio",
-                   "Gender: Female",
-                   "Age (years)",
-                   "Other Hispanic × Income",
-                   "Non-Hispanic White × Income",
-                   "Non-Hispanic Black × Income",
-                   "Non-Hispanic Asian × Income",
-                   "Other/Multi-Racial × Income")
-
-# Combine into a matrix
-results_matrix <- cbind(characteristic, beta, se, ci_values, p_values)
-colnames(results_matrix) <- c("Predictor Variables", "Exp(Beta)", "SE", "95% CI (Exp)", "P-value")
-
-# Create table
-kable(results_matrix,
-      align = c('l', 'c', 'c', 'c', 'c'),
-      row.names = FALSE,
-      caption = "Blood Mercury Levels MLR Model Summary Table (Back-Transformed Coefficients)")
-
-
 ```
 
 The model is statistically significant (F-statistic = 81.04, p \< 0.001) and explains 13.34% of the variance in blood mercury levels with an adjusted R-squared of 0.1334. The model's low adjusted R-squared value is probably because of two possible reasons: (1) There are outstanding outliers of blood mercury levels, but our model's predictor variables on demographics and water drinking types are unlikely to be the key reasons that cause these extremely high mercury levels. The key reason could be environmental factors, such as serious chemical pollution. (2) For the mercury exam results, there is lower detection limit. When the actual mercury level is less than this detection limit of 0.21 µg/L, the value would be recorded as 0.12 µg/L. This creates a large cluster of identical values and true values below detection limit are unknown, which makes it harder for the model to explain variation that's artificially removed.
@@ -895,6 +857,60 @@ kable(vif_values, caption = "Variance Inflation Factor (VIF) with Interaction Te
 ```
 
 ### Research Question 2
+
+**Appendix 2-1: Multiple Linear Regression Model Coefficients**
+
+To make the coefficients easier to interpret, we performed a back-transformation by exponentiating the regression coefficients and their confidence intervals to interpret the results on the original scale of mercury levels rather than their logged value. This allows us to describe how each predictor multiplicatively affects mercury levels, providing more meaningful and practical insights.
+
+```{r}
+# Extract coefficient table and confidence intervals
+coef_table <- summary(model_updated)$coefficients
+ci <- confint(model_updated)
+
+# Back-transform coefficients (exponentiate)
+beta_original <- exp(coef_table[, 1])  # Exponentiate coefficients
+ci_lower <- exp(ci[, 1])  # Exponentiate lower bounds of confidence intervals
+ci_upper <- exp(ci[, 2])  # Exponentiate upper bounds of confidence intervals
+
+# Format back-transformed coefficients and confidence intervals
+beta <- sprintf("%.3f", beta_original)
+ci_values <- sprintf("%.3f, %.3f", ci_lower, ci_upper)
+
+# Add standard error and p-values
+se <- sprintf("%.3f", coef_table[, 2])
+p_values <- ifelse(coef_table[, 4] < 0.001, "< 0.001", sprintf("%.3f", coef_table[, 4]))
+
+# Add predictor variable names
+characteristic <- c("Intercept",
+                   "Tap Water Intake",
+                   "Bottled Water Intake",
+                   "Race: Other Hispanic",
+                   "Race: Non-Hispanic White",
+                   "Race: Non-Hispanic Black",
+                   "Race: Non-Hispanic Asian",
+                   "Race: Other/Multi-Racial",
+                   "Income-to-Poverty Ratio",
+                   "Gender: Female",
+                   "Age (years)",
+                   "Other Hispanic × Income",
+                   "Non-Hispanic White × Income",
+                   "Non-Hispanic Black × Income",
+                   "Non-Hispanic Asian × Income",
+                   "Other/Multi-Racial × Income")
+
+# Combine into a matrix
+results_matrix <- cbind(characteristic, beta, se, ci_values, p_values)
+colnames(results_matrix) <- c("Predictor Variables", "Exp(Beta)", "SE", "95% CI (Exp)", "P-value")
+
+# Create table
+kable(results_matrix,
+      align = c('l', 'c', 'c', 'c', 'c'),
+      row.names = FALSE,
+      caption = "Blood Mercury Levels MLR Model Summary Table (Back-Transformed Coefficients)")
+
+
+```
+
 
 **Appendix 2-A: Summary table for categorical variables**
 
