@@ -14,6 +14,7 @@ header-includes:
       - \usepackage{pdflscape}
       - \usepackage{longtable}
       - \usepackage{adjustbox}
+      - \usepackage{geometry}
 
 execute:
   echo: false
@@ -239,7 +240,7 @@ To examine the relationships between sodium intake and blood pressure categories
 
 Model comparison was performed using the Akaike Information Criterion (AIC), which balances goodness of fit with model complexity. By comparing AIC values for multinomial regression models with and without interaction terms, we determined whether the improved fit provided by the interaction terms justified the added complexity. Additionally, a confusion matrix was used to evaluate the predictive performance of the multinomial logistic regression model.
 
-For modeling blood mercury levels, a multiple linear regression (MLR) model was employed. Residual plots were analyzed to assess linearity and homoscedasticity, while adjusted R-squared was used to evaluate the model’s explanatory power. Variance Inflation Factors (VIFs) were calculated to detect multicollinearity among predictors. We also utilized Cook's distance to examine influential points, and refitted models after removing the influential points to see if that improved the model performance. 
+For modeling blood mercury levels, a multiple linear regression (MLR) model was employed. Residual plots were analyzed to assess linearity and homoscedasticity, while adjusted R-squared was used to evaluate the model’s explanatory power. Variance Inflation Factors (VIFs) were calculated to detect multicollinearity among predictors. We also utilized Cook's distance to examine influential points, and refitted models after removing the influential points to see if that improved the model performance.
 
 All statistical analyses and modeling were conducted using the R programming language. Model fit for both the multinomial and linear regression models was evaluated using AIC and deviance as key metrics.
 
@@ -253,11 +254,11 @@ Second, we observed that the racial group "Other Race" had no observations in th
 
 Third, we noted that the "Normal" blood pressure category had the highest number of observations among all categories. This imbalance suggests that the multinomial regression model may estimate higher probabilities for the "Normal" category compared to others, reflecting the underlying distribution of the data. The table below shows the summary statistics of our continuous variables.
 
-| Variable Name            | Minimum | Maximum |    Mean | Standard Deviation |
-|--------------------------|--------:|--------:|--------:|-------------------:|
-| Sodium Intake            |       0 |   20006 | 3061.72 |            1411.03 |
-| Alcohol Consumption      |   -0.66 |   448.1 |    6.02 |              17.68 |
-| Age                      |       8 |      80 |   44.83 |              22.72 |
+| Variable Name       | Minimum | Maximum |    Mean | Standard Deviation |
+|---------------------|--------:|--------:|--------:|-------------------:|
+| Sodium Intake       |       0 |   20006 | 3061.72 |            1411.03 |
+| Alcohol Consumption |   -0.66 |   448.1 |    6.02 |              17.68 |
+| Age                 |       8 |      80 |   44.83 |              22.72 |
 
 ```{r, results='hide', echo=FALSE, fig.show = "hide"}
 data_q1$Race <- as.factor(data_q1$Race)
@@ -354,25 +355,25 @@ data_q1$Race <- factor(data_q1$Race,
 
 The multinomial regression model was applied to analyze the impact of various predictors on five different health categories: Elevated, Normal, Not Classified, Stage 1 Hypertension, and Stage 2 Hypertension. The predictors included Sodium intake, Age, Gender, Race, and Alcohol consumption. The results from the model coefficients reveal the relationship between each predictor and the probability of an individual falling into a particular health category.
 
-- **Sodium Intake**: The coefficient for Sodium intake is zero for all health categories except for "Normal." This suggests that Sodium intake does not have a statistically significant impact on the probability of falling into any health category, including Elevated, Stage 1 Hypertension, and Stage 2 Hypertension. For the "Normal" category, the coefficient of 0 indicates that the sodium intake doesn't significantly differentiate between this category and the others.
-  
-- **Age**: Age has a similar pattern, with the coefficients being zero for all categories except for "Normal." The model indicates that Age does not significantly influence the likelihood of being classified as Stage 1 Hypertension, Stage 2 Hypertension, or Elevated. However, Age plays a role in distinguishing between the Normal and other categories, where small but positive coefficients suggest an increasing likelihood of being classified as "Normal" as age increases.
+-   **Sodium Intake**: The coefficient for Sodium intake is zero for all health categories except for "Normal." This suggests that Sodium intake does not have a statistically significant impact on the probability of falling into any health category, including Elevated, Stage 1 Hypertension, and Stage 2 Hypertension. For the "Normal" category, the coefficient of 0 indicates that the sodium intake doesn't significantly differentiate between this category and the others.
 
-- **Gender**: Gender is significant only for some categories. In particular, the coefficient for Gender is positive for the "Stage 1 Hypertension" category (0.415), indicating that females may have a higher likelihood of being classified into Stage 1 Hypertension compared to other blood pressure categories. The coefficient is negative for some categories, suggesting gender-related differences in classification but at a relatively low magnitude.
+-   **Age**: Age has a similar pattern, with the coefficients being zero for all categories except for "Normal." The model indicates that Age does not significantly influence the likelihood of being classified as Stage 1 Hypertension, Stage 2 Hypertension, or Elevated. However, Age plays a role in distinguishing between the Normal and other categories, where small but positive coefficients suggest an increasing likelihood of being classified as "Normal" as age increases.
 
-- **Race**: The "Race" variable shows the most substantial influence on health classifications. Individuals classified as **Non-Hispanic White** are significantly more likely to fall into the **Normal** category compared to all other categories, with the coefficient being highly significant (3.458). On the other hand, **Non-Hispanic Black**, **Non-Hispanic Asian**, and **Multiracial** categories have smaller but significant coefficients, indicating that race impacts health classifications, though the influence is smaller compared to the Non-Hispanic White category. **Other Hispanic** has a modest but significant positive effect on the "Normal" category compared to others, while **Stage 1 Hypertension** and **Stage 2 Hypertension** are slightly more likely to be associated with non-White races.
+-   **Gender**: Gender is significant only for some categories. In particular, the coefficient for Gender is positive for the "Stage 1 Hypertension" category (0.415), indicating that females may have a higher likelihood of being classified into Stage 1 Hypertension compared to other blood pressure categories. The coefficient is negative for some categories, suggesting gender-related differences in classification but at a relatively low magnitude.
 
-- **Alcohol Consumption**: Alcohol consumption has a minor but significant effect on health classifications. A small negative coefficient for alcohol consumption in the "Normal" and "Stage 1 Hypertension" categories suggests a slightly decreased likelihood of these classifications as alcohol consumption increases.
+-   **Race**: The "Race" variable shows the most substantial influence on health classifications. Individuals classified as **Non-Hispanic White** are significantly more likely to fall into the **Normal** category compared to all other categories, with the coefficient being highly significant (3.458). On the other hand, **Non-Hispanic Black**, **Non-Hispanic Asian**, and **Multiracial** categories have smaller but significant coefficients, indicating that race impacts health classifications, though the influence is smaller compared to the Non-Hispanic White category. **Other Hispanic** has a modest but significant positive effect on the "Normal" category compared to others, while **Stage 1 Hypertension** and **Stage 2 Hypertension** are slightly more likely to be associated with non-White races.
+
+-   **Alcohol Consumption**: Alcohol consumption has a minor but significant effect on health classifications. A small negative coefficient for alcohol consumption in the "Normal" and "Stage 1 Hypertension" categories suggests a slightly decreased likelihood of these classifications as alcohol consumption increases.
 
 The p-values for the coefficients provide further insight into the statistical significance of the predictors. P-values below 0.05 indicate significant predictors for blood pressure categories. The following predictors showed statistical significance:
 
-- **Gender**: Gender is significant for **Stage 1 Hypertension** (p-value = 0), suggesting that it plays a role in the likelihood of being classified into this category.
-  
-- **Race**: Race, particularly **Non-Hispanic White** (p-value = 0.000) and **Non-Hispanic Black** (p-value = 0.000), had very low p-values, indicating strong statistical significance in predicting the likelihood of being classified into health categories like Normal, Stage 1 Hypertension, and Stage 2 Hypertension.
+-   **Gender**: Gender is significant for **Stage 1 Hypertension** (p-value = 0), suggesting that it plays a role in the likelihood of being classified into this category.
 
-- **Alcohol Consumption**: Alcohol consumption has p-values below 0.05 for some categories (e.g., **Normal** and **Stage 1 Hypertension**), indicating its moderate impact on the health classifications.
+-   **Race**: Race, particularly **Non-Hispanic White** (p-value = 0.000) and **Non-Hispanic Black** (p-value = 0.000), had very low p-values, indicating strong statistical significance in predicting the likelihood of being classified into health categories like Normal, Stage 1 Hypertension, and Stage 2 Hypertension.
 
-- **Sodium Intake and Age**: These variables had higher p-values, suggesting that they do not contribute significantly to the prediction of health classifications.
+-   **Alcohol Consumption**: Alcohol consumption has p-values below 0.05 for some categories (e.g., **Normal** and **Stage 1 Hypertension**), indicating its moderate impact on the health classifications.
+
+-   **Sodium Intake and Age**: These variables had higher p-values, suggesting that they do not contribute significantly to the prediction of health classifications.
 
 The confusion matrix shows the model’s performance in classifying the categories of health status. The **Normal** category was the most accurately predicted, with 3689 instances classified correctly. However, the model displayed a tendency to misclassify **Normal** cases into **Stage 1 Hypertension** (1201 instances) and **Stage 2 Hypertension** (364 instances). A notable challenge was the complete misclassification of **Elevated** and **Not Classified** cases, as no observations from these categories were correctly predicted. **Stage 1 Hypertension** and **Stage 2 Hypertension** were also misclassified into the other categories, but with lower frequency. Overall, the model showed difficulty distinguishing between certain categories, especially the **Elevated** and **Not Classified** categories.
 
@@ -384,7 +385,7 @@ To assess multicollinearity, Variance Inflation Factors (VIFs) were calculated f
 multinom_model <- multinom(factor(BP_category) ~ Sodium_intake + Age + Gender + Race + Alcohol_consumption, data = data_q1)
 ```
 
-```{r}
+```{r results='hide'}
 # Model Summary
 summary_table <- summary(multinom_model)$coefficients %>%
   as.data.frame() %>%
@@ -412,21 +413,22 @@ kable(confusion_matrix, caption = "Confusion Matrix") %>%
   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 
-
-
 ```{r, results='hide'}
 # Fit the multinomial logistic regression model with interaction terms
 multinom_model2 <- multinom(BP_category ~ Sodium_intake * Gender + Sodium_intake * Race + Age + Gender + Race + Alcohol_consumption, 
                            data = data_q1)
 ```
 
-```{r, results='hide'}
+\newgeometry{top=1cm, bottom=1cm, left=1cm, right=1cm}
+\begin{landscape}
+
+```{r, results='asis'}
 # Model Summary
 summary_table <- summary(multinom_model2)$coefficients %>%
   as.data.frame() %>%
   mutate_all(round, 3)
 
-kable(summary_table, caption = "Model Coefficients with Interaction Terms") %>%
+kable(summary_table, format = "latex", caption = "Model Coefficients with Interaction Terms") %>%
   kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", bootstrap_options = c("striped", "hover"))
 
 # Calculate p-values
@@ -437,16 +439,20 @@ p_values <- 2 * (1 - pnorm(abs(z_values)))
 p_values_table <- as.data.frame(p_values) %>%
   mutate_all(round, 3)
 
-kable(p_values_table, caption = "P-Values for Model Coefficients with Interaction Terms") %>%
+kable(p_values_table, format = "latex", caption = "P-Values for Model Coefficients with Interaction Terms") %>%
   kable_styling(full_width = FALSE, position = "center", latex_options = "scale_down", bootstrap_options = c("striped", "hover"))
 
 # Confusion Matrix
 predicted_categories <- predict(multinom_model2, newdata = data_q1)
 confusion_matrix <- table(Predicted = predicted_categories, Actual = data_q1$BP_category)
 
-kable(confusion_matrix, caption = "Confusion Matrix with Interaction Terms") %>%
+kable(confusion_matrix, format = "latex", caption = "Confusion Matrix with Interaction Terms") %>%
   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
+
+\end{landscape}
+\restoregeometry
+
 ### Research Question 2: Contributing Factors of Blood Mercury Level
 
 Our statistical approach employed multiple linear regression with log-transformed mercury levels as the dependent variable, addressing both the non-normal distribution of mercury concentrations and the presence of detection limits in the measurements. The model incorporated water consumption variables (tap and bottled water intake), demographic characteristics (race, gender, age), and socioeconomic status (income-to-poverty ratio) and interaction term between race and income level to capture the complex relationships between these factors. Below is a summary descriptive statistics of continuous predictor and outcome variables. For categorical variables, we included a summary statistics table in Appendix 2-A.
@@ -739,10 +745,9 @@ When fitting the model, we included interaction term between race and family inc
 
 Therefore, the final model was to fit logged blood mercury level using age, gender, race, income levels, tap water intake, bottle water intake, and interaction term between race and income levels. The final model outputs are in below table. To make the coefficients easier to interpret, we performed a back-transformation by exponentiating the regression coefficients and their confidence intervals to interpret the results on the original scale of mercury levels rather than their logged value. This allows us to describe how each predictor multiplicatively affects mercury levels, providing more meaningful and practical insights.
 
-The model summary output shows that tap water intake has a significant positive association (\(p < 0.001\)), whereas bottled water intake has no significant effect (\(p = 0.133\)). For the variable of race, compared to the reference level of Mexican Americans, non-Hispanic Asians have 289.5% higher mercury levels, while non-Hispanic Black and other races have 17.1% and 3.9% higher mercury levels, respectively. Non-Hispanic White individuals, however, have mercury levels that are 28.6% lower than the reference group. For demographic factors, both age and income level have a positive association with mercury levels. Holding all other variables constant, for every unit increase in the income-to-poverty ratio, mercury levels increase by 7.6% (\(p = 0.020\)), which may seem counter-intuitive, as families with higher income levels have higher blood mercury levels. Each additional year of age is associated with a 1.4% increase in mercury levels (\(p < 0.001\)). For gender, compared to males, females have mercury levels that are 7.9% lower (\(p = 0.002\)).
+The model summary output shows that tap water intake has a significant positive association ((p \< 0.001)), whereas bottled water intake has no significant effect ((p = 0.133)). For the variable of race, compared to the reference level of Mexican Americans, non-Hispanic Asians have 289.5% higher mercury levels, while non-Hispanic Black and other races have 17.1% and 3.9% higher mercury levels, respectively. Non-Hispanic White individuals, however, have mercury levels that are 28.6% lower than the reference group. For demographic factors, both age and income level have a positive association with mercury levels. Holding all other variables constant, for every unit increase in the income-to-poverty ratio, mercury levels increase by 7.6% ((p = 0.020)), which may seem counter-intuitive, as families with higher income levels have higher blood mercury levels. Each additional year of age is associated with a 1.4% increase in mercury levels ((p \< 0.001)). For gender, compared to males, females have mercury levels that are 7.9% lower ((p = 0.002)).
 
-Regarding the interaction between race and income level, the effects of income on mercury levels vary across racial groups. For Non-Hispanic White individuals, a higher income-to-poverty ratio is associated with a 10.2% increase in blood mercury levels (\(p = 0.004\)). Conversely, for Non-Hispanic Asians, a higher income-to-poverty ratio is associated with a 10.5% decrease in mercury levels (\(p = 0.016\)). These significant findings suggest that income affects mercury exposure differently across racial groups. However, for Other Hispanic, Non-Hispanic Black, and Other/Multi-Racial groups, the interaction effects between income and mercury levels are not statistically significant, with p-values of 0.439, 0.307, and 0.145, respectively.
-
+Regarding the interaction between race and income level, the effects of income on mercury levels vary across racial groups. For Non-Hispanic White individuals, a higher income-to-poverty ratio is associated with a 10.2% increase in blood mercury levels ((p = 0.004)). Conversely, for Non-Hispanic Asians, a higher income-to-poverty ratio is associated with a 10.5% decrease in mercury levels ((p = 0.016)). These significant findings suggest that income affects mercury exposure differently across racial groups. However, for Other Hispanic, Non-Hispanic Black, and Other/Multi-Racial groups, the interaction effects between income and mercury levels are not statistically significant, with p-values of 0.439, 0.307, and 0.145, respectively.
 
 ```{r,include=FALSE}
 # Rename columns
@@ -757,7 +762,6 @@ colnames(data)[colnames(data) == "RIDAGEYR"] <- "Age"
 # print(colnames(data))
 
 ```
-
 
 ```{r}
 # Fit the model
@@ -891,7 +895,6 @@ kable(vif_values, caption = "Variance Inflation Factor (VIF) with Interaction Te
   kable_styling(full_width = FALSE, position = "center", bootstrap_options = c("striped", "hover"))
 ```
 
-
 ### Research Question 2:
 
 **Appendix 2-A: Summary table for categorical variables**
@@ -980,7 +983,6 @@ mtext("Race + Income_Level + Gender + Age)",
 
 
 ```
-
 
 **Appendix 2-C: Cook's distance analysis for top 5 influential points**
 
@@ -1183,4 +1185,3 @@ vif_table <- data.frame(
 kable(vif_table, align = "lc", caption = "Variance Inflation Factor (VIF) for Predictors")
 
 ```
-
